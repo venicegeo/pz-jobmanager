@@ -2,6 +2,8 @@ package main.java.jobmanager.messaging;
 
 import java.util.Properties;
 
+import model.job.PiazzaJob;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -42,9 +44,9 @@ public class JobMessager {
 		createJobRunner.run();
 	}
 
-	private JacksonDBCollection<String, String> getJobCollection() {
+	private JacksonDBCollection<PiazzaJob, String> getJobCollection() {
 		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
-		return JacksonDBCollection.wrap(collection, String.class, String.class);
+		return JacksonDBCollection.wrap(collection, PiazzaJob.class, String.class);
 	}
 
 	/**
