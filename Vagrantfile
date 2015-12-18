@@ -22,6 +22,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	    jobdb.vm.hostname = "jobdb.dev"
 	    jobdb.vm.provision :shell, path: "db-bootstrap.sh"
 	    jobdb.vm.network :private_network, ip:"192.168.23.24"
+	    jobdb.vm.network "forwarded_port", guest: 27017, host: 27017
 	    jobdb.vm.synced_folder "./", "/vagrant/jobmanager"
 	    jobdb.vm.provider "virtualbox" do |vb|
 	      vb.customize ["modifyvm", :id, "--memory", "512"]

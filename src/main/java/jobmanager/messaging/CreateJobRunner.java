@@ -7,17 +7,23 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
+import org.mongojack.JacksonDBCollection;
 
 public class CreateJobRunner implements Runnable {
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private Consumer<String, String> consumer;
+	private JacksonDBCollection<String, String> collection;
 
 	/**
+	 * Thread runner that will consume incoming Job Creation Kafka messages and
+	 * create corresponding entries in the Jobs table.
 	 * 
 	 * @param consumer
+	 * @param collection
 	 */
-	public CreateJobRunner(Consumer<String, String> consumer) {
+	public CreateJobRunner(Consumer<String, String> consumer, JacksonDBCollection<String, String> collection) {
 		this.consumer = consumer;
+		this.collection = collection;
 	}
 
 	public void run() {
@@ -27,9 +33,10 @@ public class CreateJobRunner implements Runnable {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
 				// Handle new Messages on this topic.
 				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
-					System.out.println("Job Manager indexing new job with topic " + consumerRecord.topic()
-							+ " and key " + consumerRecord.key());
-					// Insert the Job Information into the Job Table
+					System.out.println("Indexing new job with topic " + consumerRecord.topic() + " and key "
+							+ consumerRecord.key());
+					// Inserting Job Information into the Job Table
+					collection.insert(consumerRecord.value());
 				}
 
 			}

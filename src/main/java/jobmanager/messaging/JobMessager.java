@@ -6,6 +6,10 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.mongojack.JacksonDBCollection;
+
+import com.mongodb.DBCollection;
+import com.mongodb.MongoClient;
 
 /**
  * Consumes Kafka messages related to Jobs.
@@ -14,15 +18,19 @@ import org.apache.kafka.clients.producer.Producer;
  * 
  */
 public class JobMessager {
+	private static final String DATABASE_NAME = "Jobs";
+	private static final String JOB_COLLECTION_NAME = "Jobs";
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
+	private MongoClient mongoClient;
 
 	/**
 	 * 
 	 */
-	public JobMessager() {
+	public JobMessager(MongoClient mongoClient) {
 		initializeProducer();
 		initializeConsumer();
+		this.mongoClient = mongoClient;
 	}
 
 	/**
@@ -30,12 +38,19 @@ public class JobMessager {
 	 */
 	public void initialize() {
 		// Start the runner that will relay Job Creation topics.
-		CreateJobRunner createJobRunner = new CreateJobRunner(consumer);
+		CreateJobRunner createJobRunner = new CreateJobRunner(consumer, getJobCollection());
 		createJobRunner.run();
+	}
+
+	private JacksonDBCollection<String, String> getJobCollection() {
+		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
+		return JacksonDBCollection.wrap(collection, String.class, String.class);
 	}
 
 	/**
 	 * Initializing the Kafka Producer that will relay messages.
+	 * 
+	 * TODO: Config please
 	 */
 	private void initializeProducer() {
 		// Initialize the Kafka Producer
@@ -54,6 +69,8 @@ public class JobMessager {
 
 	/**
 	 * Initializing the Kafka Consumer that will consume relayable messages.
+	 * 
+	 * TODO: Config please
 	 */
 	private void initializeConsumer() {
 		Properties props = new Properties();
