@@ -5,14 +5,27 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-	config.vm.box = "ubuntu/precise64"
-	config.vm.hostname = "jobmanager.dev"
-	config.vm.provision :shell, path: "jm-bootstrap.sh"
-	config.vm.network :private_network, ip:"192.168.23.23"
-	config.vm.network "forwarded_port", guest: 8080, host: 8081
-	config.vm.synced_folder "./", "/vagrant/jobmanager"
-	config.vm.provider "virtualbox" do |vb|
-	  vb.customize ["modifyvm", :id, "--memory", "512"]
+	config.vm.define "jm" do |jm|
+		jm.vm.box = "ubuntu/precise64"
+		jm.vm.hostname = "jobmanager.dev"
+		jm.vm.provision :shell, path: "jm-bootstrap.sh"
+		jm.vm.network :private_network, ip:"192.168.23.23"
+		jm.vm.network "forwarded_port", guest: 8080, host: 8081
+		jm.vm.synced_folder "./", "/vagrant/jobmanager"
+		jm.vm.provider "virtualbox" do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "512"]
+		end
+	end
+	
+	config.vm.define "jobdb" do |jobdb|
+	    jobdb.vm.box = "ubuntu/precise64"
+	    jobdb.vm.hostname = "jobdb.dev"
+	    jobdb.vm.provision :shell, path: "db-bootstrap.sh"
+	    jobdb.vm.network :private_network, ip:"192.168.23.24"
+	    jobdb.vm.synced_folder "./", "/vagrant/jobmanager"
+	    jobdb.vm.provider "virtualbox" do |vb|
+	      vb.customize ["modifyvm", :id, "--memory", "512"]
+	    end
 	end
 
 end
