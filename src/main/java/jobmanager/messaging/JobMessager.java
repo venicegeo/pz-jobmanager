@@ -2,16 +2,10 @@ package main.java.jobmanager.messaging;
 
 import java.util.Properties;
 
-import model.job.PiazzaJob;
-
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.mongojack.JacksonDBCollection;
-
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
 
 /**
  * Consumes Kafka messages related to Jobs.
@@ -20,19 +14,15 @@ import com.mongodb.MongoClient;
  * 
  */
 public class JobMessager {
-	private static final String DATABASE_NAME = "Jobs";
-	private static final String JOB_COLLECTION_NAME = "Jobs";
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
-	private MongoClient mongoClient;
 
 	/**
 	 * 
 	 */
-	public JobMessager(MongoClient mongoClient) {
+	public JobMessager() {
 		initializeProducer();
 		initializeConsumer();
-		this.mongoClient = mongoClient;
 	}
 
 	/**
@@ -40,14 +30,8 @@ public class JobMessager {
 	 */
 	public void initialize() {
 		// Start the runner that will relay Job Creation topics.
-		CreateJobRunner createJobRunner = new CreateJobRunner(consumer, getJobCollection());
+		CreateJobRunner createJobRunner = new CreateJobRunner(consumer);
 		createJobRunner.run();
-	}
-
-	private JacksonDBCollection<PiazzaJob, String> getJobCollection() {
-		// MongoJack does not support the latest Mongo API yet. TODO: Check if they plan to.
-		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
-		return JacksonDBCollection.wrap(collection, PiazzaJob.class, String.class);
 	}
 
 	/**
@@ -58,7 +42,7 @@ public class JobMessager {
 	private void initializeProducer() {
 		// Initialize the Kafka Producer
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "kafka.dev:9092");
+		props.put("bootstrap.servers", "localhost:9092");
 		props.put("acks", "all");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
@@ -77,7 +61,7 @@ public class JobMessager {
 	 */
 	private void initializeConsumer() {
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "kafka.dev:9092");
+		props.put("bootstrap.servers", "localhost:9092");
 		props.put("group.id", "TEST-GROUP");
 		props.put("enable.auto.commit", "true");
 		props.put("auto.commit.interval.ms", "1000");

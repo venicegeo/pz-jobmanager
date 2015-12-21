@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		jm.vm.hostname = "jobmanager.dev"
 		jm.vm.provision :shell, path: "jm-bootstrap.sh"
 		jm.vm.network :private_network, ip:"192.168.23.23"
-		jm.vm.network "forwarded_port", guest: 8080, host: 8081
+		jm.vm.network "forwarded_port", guest: 8080, host: 8083
 		jm.vm.synced_folder "./", "/vagrant/jobmanager"
 		jm.vm.provider "virtualbox" do |vb|
 		  vb.customize ["modifyvm", :id, "--memory", "512"]

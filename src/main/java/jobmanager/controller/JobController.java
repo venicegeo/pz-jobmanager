@@ -1,7 +1,10 @@
 package main.java.jobmanager.controller;
 
+import main.java.jobmanager.database.MongoAccessor;
+import model.job.Job;
 import model.response.JobStatusResponse;
 
+import org.mongojack.JacksonDBCollection;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,6 +26,11 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET)
 	public JobStatusResponse getJobStatus(@PathVariable(value = "jobId") String jobId) {
+		// Get the Jobs collection from the MongoDB Accessor
+		JacksonDBCollection<Job, String> jobCollection = MongoAccessor.getInstance().getJobCollection();
+		// Query for the Job ID
+		
+		// Return Job Status
 		return new JobStatusResponse("TestJobID");
 	}
 }

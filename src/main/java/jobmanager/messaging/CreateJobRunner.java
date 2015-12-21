@@ -3,20 +3,19 @@ package main.java.jobmanager.messaging;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import model.job.PiazzaJob;
+import main.java.jobmanager.database.MongoAccessor;
+import model.job.Job;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
-import org.mongojack.JacksonDBCollection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CreateJobRunner implements Runnable {
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private Consumer<String, String> consumer;
-	private JacksonDBCollection<PiazzaJob, String> collection;
 
 	/**
 	 * Thread runner that will consume incoming Job Creation Kafka messages and
@@ -25,9 +24,8 @@ public class CreateJobRunner implements Runnable {
 	 * @param consumer
 	 * @param collection
 	 */
-	public CreateJobRunner(Consumer<String, String> consumer, JacksonDBCollection<PiazzaJob, String> collection) {
+	public CreateJobRunner(Consumer<String, String> consumer) {
 		this.consumer = consumer;
-		this.collection = collection;
 	}
 
 	public void run() {
@@ -44,18 +42,19 @@ public class CreateJobRunner implements Runnable {
 					// Inserting Job Information into the Job Table
 					try {
 						ObjectMapper mapper = new ObjectMapper();
-						PiazzaJob job = mapper.readValue(consumerRecord.value(), PiazzaJob.class);
-						collection.insert(job);
+						Job job = mapper.readValue(consumerRecord.value(), Job.class);
+						MongoAccessor.getInstance().getJobCollection().insert(job);
 					} catch (Exception exception) {
 						System.out.println("Error committing Job: " + exception.getMessage());
+						exception.printStackTrace();
 					}
 
 				}
 			}
-		} catch (WakeupException e) {
+		} catch (WakeupException exception) {
 			// Ignore exception if closing
 			if (!closed.get()) {
-				throw e;
+				throw exception;
 			}
 		} finally {
 			consumer.close();

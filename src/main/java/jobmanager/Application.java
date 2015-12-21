@@ -1,7 +1,5 @@
 package main.java.jobmanager;
 
-import java.net.UnknownHostException;
-
 import main.java.jobmanager.messaging.JobMessager;
 
 import org.springframework.boot.SpringApplication;
@@ -9,12 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 
-import com.mongodb.MongoClient;
-
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
-	private static final String DATABASE_HOST = "localhost";
-	private static final int DATABASE_PORT = 27017;
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
@@ -24,17 +18,9 @@ public class Application extends SpringBootServletInitializer {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 
-		// Instantiate the Database connection
-		MongoClient mongoClient;
-		try {
-			mongoClient = new MongoClient(DATABASE_HOST, DATABASE_PORT);
-			// Spin up the Kafka Consumer that will listen for messages.
-			JobMessager jobMessager = new JobMessager(mongoClient);
-			jobMessager.initialize();
-		} catch (UnknownHostException exception) {
-			System.out.println("Could not connect to MongoDB instance.");
-			exception.printStackTrace();
-		}
+		// Spin up the Kafka Consumer that will listen for messages.
+		JobMessager jobMessager = new JobMessager();
+		jobMessager.initialize();
 
 	}
 }
