@@ -45,6 +45,7 @@ public class JobMessager {
 	}
 
 	private JacksonDBCollection<PiazzaJob, String> getJobCollection() {
+		// MongoJack does not support the latest Mongo API yet. TODO: Check if they plan to.
 		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
 		return JacksonDBCollection.wrap(collection, PiazzaJob.class, String.class);
 	}
