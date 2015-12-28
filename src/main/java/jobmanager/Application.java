@@ -20,7 +20,5 @@ public class Application extends SpringBootServletInitializer {
 
 		// Spin up the Kafka Consumer that will listen for messages.
 		JobMessager jobMessager = new JobMessager();
-		jobMessager.initialize();
-
 	}
 }

@@ -2,11 +2,17 @@ package main.java.jobmanager.database;
 
 import java.net.UnknownHostException;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import model.job.Job;
 
 import org.mongojack.JacksonDBCollection;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 
@@ -16,23 +22,23 @@ import com.mongodb.MongoClient;
  * @author Patrick.Doody
  * 
  */
+@Component
 public class MongoAccessor {
-	/**
-	 * Singleton instance.
-	 */
-	private static final MongoAccessor instance = new MongoAccessor();
-
 	@Value("${mongo.host}")
-	private static String DATABASE_HOST;
+	private String DATABASE_HOST;
 	@Value("${mongo.port}")
-	private static int DATABASE_PORT;
+	private int DATABASE_PORT;
 	@Value("${mongo.db.name}")
-	private static String DATABASE_NAME;
+	private String DATABASE_NAME;
 	@Value("${mongo.db.collection.name}")
-	private static String JOB_COLLECTION_NAME;
+	private String JOB_COLLECTION_NAME;
 	private MongoClient mongoClient;
 
-	protected MongoAccessor() {
+	public MongoAccessor() {
+	}
+
+	@PostConstruct
+	private void initialize() {
 		try {
 			mongoClient = new MongoClient(DATABASE_HOST, DATABASE_PORT);
 		} catch (UnknownHostException exception) {
@@ -41,13 +47,9 @@ public class MongoAccessor {
 		}
 	}
 
-	/**
-	 * Thread-safe Singleton Accessor
-	 * 
-	 * @return
-	 */
-	public static MongoAccessor getInstance() {
-		return instance;
+	@PreDestroy
+	private void close() {
+		mongoClient.close();
 	}
 
 	/**
@@ -69,5 +71,18 @@ public class MongoAccessor {
 		// they plan to.
 		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
 		return JacksonDBCollection.wrap(collection, Job.class, String.class);
+	}
+
+	/**
+	 * Returns a Job that matches the specified ID.
+	 * 
+	 * @param jobId
+	 *            Job ID
+	 * @return The Job with the specified ID
+	 */
+	public Job getJobById(String jobId) throws ResourceAccessException {
+		BasicDBObject query = new BasicDBObject("jobId", jobId);
+		Job job = getJobCollection().findOne(query);
+		return job;
 	}
 }

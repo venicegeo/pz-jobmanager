@@ -2,19 +2,22 @@ package main.java.jobmanager.messaging;
 
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
+
+import main.java.jobmanager.database.MongoAccessor;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/**
- * Consumes Kafka messages related to Jobs.
- * 
- * @author Patrick.Doody
- * 
- */
+@Component
 public class JobMessager {
+	@Autowired
+	private MongoAccessor accessor;
 	@Value("${kafka.host}")
 	private String KAFKA_HOST;
 	@Value("${kafka.port}")
@@ -24,20 +27,17 @@ public class JobMessager {
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 
-	/**
-	 * 
-	 */
 	public JobMessager() {
-		initializeProducer();
-		initializeConsumer();
+
 	}
 
-	/**
-	 * 
-	 */
+	@PostConstruct
 	public void initialize() {
+		// Initialize the Consumer and Producer
+		initializeProducer();
+		initializeConsumer();
 		// Start the runner that will relay Job Creation topics.
-		CreateJobRunner createJobRunner = new CreateJobRunner(consumer);
+		CreateJobRunner createJobRunner = new CreateJobRunner(consumer, accessor);
 		createJobRunner.run();
 	}
 

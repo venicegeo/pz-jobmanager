@@ -2,16 +2,21 @@ package main.java.jobmanager.controller;
 
 import main.java.jobmanager.database.MongoAccessor;
 import model.job.Job;
+import model.response.ErrorResponse;
 import model.response.JobStatusResponse;
+import model.response.PiazzaResponse;
 
-import org.mongojack.JacksonDBCollection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.ResourceAccessException;
 
 @RestController
 public class JobController {
+	@Autowired
+	private MongoAccessor accessor;
 
 	/**
 	 * Returns the Job Status and potential Results of the specified Job ID.
@@ -25,12 +30,14 @@ public class JobController {
 	 *         contain an Object reference to the output produced by the Job.
 	 */
 	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET)
-	public JobStatusResponse getJobStatus(@PathVariable(value = "jobId") String jobId) {
-		// Get the Jobs collection from the MongoDB Accessor
-		JacksonDBCollection<Job, String> jobCollection = MongoAccessor.getInstance().getJobCollection();
-		// Query for the Job ID
-		
-		// Return Job Status
-		return new JobStatusResponse("TestJobID");
+	public PiazzaResponse getJobStatus(@PathVariable(value = "jobId") String jobId) {
+		try {
+			// Query for the Job ID
+			Job job = accessor.getJobById(jobId);
+			// Return Job Status
+			return new JobStatusResponse(job);
+		} catch (ResourceAccessException exception) {
+			return new ErrorResponse(jobId, "No Jobs matching the ID: " + jobId, "Job Manager");
+		}
 	}
 }

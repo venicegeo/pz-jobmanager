@@ -14,6 +14,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CreateJobRunner implements Runnable {
+	private MongoAccessor accessor; 
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private Consumer<String, String> consumer;
 
@@ -24,8 +25,9 @@ public class CreateJobRunner implements Runnable {
 	 * @param consumer
 	 * @param collection
 	 */
-	public CreateJobRunner(Consumer<String, String> consumer) {
+	public CreateJobRunner(Consumer<String, String> consumer, MongoAccessor accessor) {
 		this.consumer = consumer;
+		this.accessor = accessor;
 	}
 
 	public void run() {
@@ -43,12 +45,11 @@ public class CreateJobRunner implements Runnable {
 					try {
 						ObjectMapper mapper = new ObjectMapper();
 						Job job = mapper.readValue(consumerRecord.value(), Job.class);
-						MongoAccessor.getInstance().getJobCollection().insert(job);
+						accessor.getJobCollection().insert(job);
 					} catch (Exception exception) {
 						System.out.println("Error committing Job: " + exception.getMessage());
 						exception.printStackTrace();
 					}
-
 				}
 			}
 		} catch (WakeupException exception) {
