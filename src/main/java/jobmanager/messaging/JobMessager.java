@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Consumes Kafka messages related to Jobs.
@@ -14,6 +15,12 @@ import org.apache.kafka.clients.producer.Producer;
  * 
  */
 public class JobMessager {
+	@Value("${kafka.host}")
+	private String KAFKA_HOST;
+	@Value("${kafka.port}")
+	private String KAFKA_PORT;
+	@Value("${kafka.group}")
+	private String KAFKA_GROUP;
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 
@@ -42,7 +49,7 @@ public class JobMessager {
 	private void initializeProducer() {
 		// Initialize the Kafka Producer
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
+		props.put("bootstrap.servers", String.format("%s:%s", KAFKA_HOST, KAFKA_PORT));
 		props.put("acks", "all");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
@@ -61,8 +68,8 @@ public class JobMessager {
 	 */
 	private void initializeConsumer() {
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
-		props.put("group.id", "TEST-GROUP");
+		props.put("bootstrap.servers", String.format("%s:%s", KAFKA_HOST, KAFKA_PORT));
+		props.put("group.id", KAFKA_GROUP);
 		props.put("enable.auto.commit", "true");
 		props.put("auto.commit.interval.ms", "1000");
 		props.put("session.timeout.ms", "30000");

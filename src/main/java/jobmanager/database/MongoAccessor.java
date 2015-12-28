@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import model.job.Job;
 
 import org.mongojack.JacksonDBCollection;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
@@ -21,10 +22,14 @@ public class MongoAccessor {
 	 */
 	private static final MongoAccessor instance = new MongoAccessor();
 
-	private static final String DATABASE_HOST = "localhost";
-	private static final int DATABASE_PORT = 27017;
-	private static final String DATABASE_NAME = "Piazza";
-	private static final String JOB_COLLECTION_NAME = "Jobs";
+	@Value("${mongo.host}")
+	private static String DATABASE_HOST;
+	@Value("${mongo.port}")
+	private static int DATABASE_PORT;
+	@Value("${mongo.db.name}")
+	private static String DATABASE_NAME;
+	@Value("${mongo.db.collection.name}")
+	private static String JOB_COLLECTION_NAME;
 	private MongoClient mongoClient;
 
 	protected MongoAccessor() {
