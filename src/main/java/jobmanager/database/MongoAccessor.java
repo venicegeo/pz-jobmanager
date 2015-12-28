@@ -23,7 +23,7 @@ public class MongoAccessor {
 
 	private static final String DATABASE_HOST = "localhost";
 	private static final int DATABASE_PORT = 27017;
-	private static final String DATABASE_NAME = "Jobs";
+	private static final String DATABASE_NAME = "Piazza";
 	private static final String JOB_COLLECTION_NAME = "Jobs";
 	private MongoClient mongoClient;
 
