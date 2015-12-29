@@ -83,6 +83,9 @@ public class MongoAccessor {
 	public Job getJobById(String jobId) throws ResourceAccessException {
 		BasicDBObject query = new BasicDBObject("jobId", jobId);
 		Job job = getJobCollection().findOne(query);
+		if (job == null) {
+			throw new ResourceAccessException("Job not found.");
+		}
 		return job;
 	}
 }

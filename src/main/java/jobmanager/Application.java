@@ -1,7 +1,5 @@
 package main.java.jobmanager;
 
-import main.java.jobmanager.messaging.JobMessager;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -17,8 +15,5 @@ public class Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-
-		// Spin up the Kafka Consumer that will listen for messages.
-		JobMessager jobMessager = new JobMessager();
 	}
 }

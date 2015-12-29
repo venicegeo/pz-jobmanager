@@ -32,12 +32,18 @@ public class JobController {
 	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET)
 	public PiazzaResponse getJobStatus(@PathVariable(value = "jobId") String jobId) {
 		try {
+			if (jobId.isEmpty()) {
+				throw new Exception("No Job ID specified.");
+			}
 			// Query for the Job ID
 			Job job = accessor.getJobById(jobId);
 			// Return Job Status
 			return new JobStatusResponse(job);
 		} catch (ResourceAccessException exception) {
-			return new ErrorResponse(jobId, "No Jobs matching the ID: " + jobId, "Job Manager");
+			return new ErrorResponse(jobId, "No Jobs matching the ID", "Job Manager");
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 }

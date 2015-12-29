@@ -37,8 +37,8 @@ public class JobMessager {
 		initializeProducer();
 		initializeConsumer();
 		// Start the runner that will relay Job Creation topics.
-		CreateJobRunner createJobRunner = new CreateJobRunner(consumer, accessor);
-		createJobRunner.run();
+		Thread createJobThread = new Thread(new CreateJobRunner(consumer, accessor));
+		createJobThread.start();
 	}
 
 	/**
