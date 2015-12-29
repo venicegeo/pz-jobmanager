@@ -4,7 +4,7 @@ Internal component that provides persistence for Jobs as they pass throughout th
 
 ## Vagrant
 
-Run ``vagrant up`` to start the Job Manager service and Database Instance. The Job Manager service and the Database are **not** intended to be accessed directly, and thus provide no convenient interface for access. Instead, internal Piazza components should communicate with the [Dispatcher](https://github.com/venicegeo/pz-dispatcher) component. The Dispatcher provides a REST Interface for synchronously querying Job Status, and consumes a series of Kafka topics that can be produced in order to modify the Job collections contained in the database. As a result, the [Dispatcher](https://github.com/venicegeo/pz-dispatcher) Vagrant machine should also be running in order to interact with the Job Manager's Vagrant machines.
+Run ``vagrant up`` to start the Job Manager service and Database Instance. The Job Manager service and the Database are **not** intended to be accessed directly, and thus provide no convenient interface for access. Instead, internal Piazza components should communicate with the [Dispatcher](https://github.com/venicegeo/pz-dispatcher) component. The Dispatcher provides a REST Interface for synchronously querying Job Status, and consumes a series of Kafka topics that can be produced in order to modify the Job collections contained in the database. As a result, the [Dispatcher](https://github.com/venicegeo/pz-dispatcher) Vagrant machine should also be running in order to interact with the Job Manager's Vagrant machines. For Kafka messaging, the [Kafka Devbox](https://github.com/venicegeo/kafka-devbox) is also required to be running. 
 
 ## Interface
 
