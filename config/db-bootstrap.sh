@@ -12,7 +12,7 @@ sudo update-rc.d mongod defaults
 
 # Update configuration files
 sudo service mongod stop
-sudo cp /vagrant/jobmanager/conf/mongod.conf /etc/mongod.conf
+sudo cp /vagrant/jobmanager/config/mongod.conf /etc/mongod.conf
 
 # Restart Mongo
 sudo service mongod start 
