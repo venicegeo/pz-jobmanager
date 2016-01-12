@@ -13,6 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		jm.vm.network "forwarded_port", guest: 8083, host: 8083
 		jm.vm.synced_folder "../", "/vagrant/jobmanager"
 		jm.vm.provider "virtualbox" do |vb|
+                  vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
 		  vb.customize ["modifyvm", :id, "--memory", "512"]
 		end
 	end
@@ -25,6 +26,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	    jobdb.vm.network "forwarded_port", guest: 27017, host: 27017
 	    jobdb.vm.synced_folder "../", "/vagrant/jobmanager"
 	    jobdb.vm.provider "virtualbox" do |vb|
+          vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
 	      vb.customize ["modifyvm", :id, "--memory", "512"]
 	    end
 	end
