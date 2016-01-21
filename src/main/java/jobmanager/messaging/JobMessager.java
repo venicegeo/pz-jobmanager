@@ -1,14 +1,14 @@
-package main.java.jobmanager.messaging;
+package jobmanager.messaging;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 
-import main.java.jobmanager.database.MongoAccessor;
-import main.java.jobmanager.messaging.handler.AbortJobHandler;
-import main.java.jobmanager.messaging.handler.CreateJobHandler;
-import main.java.jobmanager.messaging.handler.UpdateStatusHandler;
+import jobmanager.database.MongoAccessor;
+import jobmanager.messaging.handler.AbortJobHandler;
+import jobmanager.messaging.handler.CreateJobHandler;
+import jobmanager.messaging.handler.UpdateStatusHandler;
 import messaging.job.JobMessageFactory;
 import messaging.job.KafkaClientFactory;
 

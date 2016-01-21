@@ -1,4 +1,4 @@
-package main.java.jobmanager.database;
+package jobmanager.database;
 
 import java.net.UnknownHostException;
 

@@ -1,6 +1,6 @@
-package main.java.jobmanager.messaging.handler;
+package jobmanager.messaging.handler;
 
-import main.java.jobmanager.database.MongoAccessor;
+import jobmanager.database.MongoAccessor;
 import model.job.type.AbortJob;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;

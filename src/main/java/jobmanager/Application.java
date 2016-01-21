@@ -1,4 +1,4 @@
-package main.java.jobmanager;
+package jobmanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

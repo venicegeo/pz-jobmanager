@@ -1,6 +1,6 @@
-package main.java.jobmanager.controller;
+package jobmanager.controller;
 
-import main.java.jobmanager.database.MongoAccessor;
+import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.response.ErrorResponse;
 import model.response.JobStatusResponse;
