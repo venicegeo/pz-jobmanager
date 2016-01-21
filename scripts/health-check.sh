@@ -4,7 +4,8 @@ pushd `dirname $0` > /dev/null
 base=$(pwd -P)
 popd > /dev/null
 
-# gather some data about the repo
+# Gather some data about the repo
 source $base/vars.sh
 
-[ `curl -s -o /dev/null -w "%{http_code}" http://pz-jobmanager.cf.piazzageo.io` = 200 ]
+# Send a null Job status check
+[ `curl -s -o /dev/null -w "%{http_code}" http://pz-jobmanager.cf.piazzageo.io/job/id` = 200 ]
