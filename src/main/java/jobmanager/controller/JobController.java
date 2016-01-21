@@ -40,7 +40,7 @@ public class JobController {
 			// Return Job Status
 			return new JobStatusResponse(job);
 		} catch (ResourceAccessException exception) {
-			return new ErrorResponse(jobId, "No Jobs matching the ID", "Job Manager");
+			return new ErrorResponse(jobId, exception.getMessage(), "Job Manager");
 		} catch (Exception exception) {
 			exception.printStackTrace();
 			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
