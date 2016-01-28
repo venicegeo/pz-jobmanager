@@ -15,6 +15,7 @@ import org.springframework.web.client.ResourceAccessException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoTimeoutException;
 
 /**
  * Helper class to interact with and access the Mongo instance.
@@ -82,10 +83,16 @@ public class MongoAccessor {
 	 */
 	public Job getJobById(String jobId) throws ResourceAccessException {
 		BasicDBObject query = new BasicDBObject("jobId", jobId);
-		Job job = getJobCollection().findOne(query);
-		if (job == null) {
-			throw new ResourceAccessException("Job not found.");
+		Job job;
+
+		try {
+			if ((job = getJobCollection().findOne(query)) == null) {
+				throw new ResourceAccessException("Job not found.");
+			}			
+		} catch( MongoTimeoutException mte) {
+			throw new ResourceAccessException("MongoDB instance not available.");
 		}
+
 		return job;
 	}
 }
