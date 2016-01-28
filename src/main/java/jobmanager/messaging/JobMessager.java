@@ -79,8 +79,6 @@ public class JobMessager {
 					switch (consumerRecord.topic()) {
 					case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
 						createJobHandler.process(consumerRecord);
-						producer.send(JobMessageFactory.getJobReturnMessage(consumerRecord.key(), 
-								"your-job-id", consumerRecord.key() ));
 						break;
 					case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
 						updateStatusHandler.process(consumerRecord);
@@ -89,6 +87,8 @@ public class JobMessager {
 						abortJobHandler.process(consumerRecord);
 						break;
 					}
+					producer.send(JobMessageFactory.getJobReturnMessage(consumerRecord.key(), "your-job-id",
+							consumerRecord.key()));
 				}
 			}
 		} catch (WakeupException exception) {
