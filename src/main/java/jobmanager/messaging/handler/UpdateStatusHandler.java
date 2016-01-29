@@ -33,9 +33,9 @@ public class UpdateStatusHandler {
 						DBUpdate.set("status", statusUpdate.getStatus()));
 			}
 			// Update the Job progress, if specified
-			if (statusUpdate.getJobProgress() != null) {
+			if (statusUpdate.getProgress() != null) {
 				accessor.getJobCollection().update(DBQuery.is("jobId", consumerRecord.key()),
-						DBUpdate.set("progress", statusUpdate.getJobProgress()));
+						DBUpdate.set("progress", statusUpdate.getProgress()));
 			}
 		} catch (Exception exception) {
 			System.out.println("Error updating Job status in Collection: " + exception.getMessage());

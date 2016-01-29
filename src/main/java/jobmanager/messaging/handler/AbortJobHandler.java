@@ -2,6 +2,7 @@ package jobmanager.messaging.handler;
 
 import jobmanager.database.MongoAccessor;
 import model.job.type.AbortJob;
+import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.mongojack.DBQuery;
@@ -29,7 +30,8 @@ public class AbortJobHandler {
 			ObjectMapper mapper = new ObjectMapper();
 			AbortJob job = mapper.readValue(consumerRecord.value(), AbortJob.class);
 			// Update the status of the Job
-			accessor.getJobCollection().update(DBQuery.is("jobId", job.getJobId()), DBUpdate.set("status", "Aborted"));
+			accessor.getJobCollection().update(DBQuery.is("jobId", job.getJobId()),
+					DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
 		} catch (Exception exception) {
 			System.out.println("Error setting aborted Job status in Collection: " + exception.getMessage());
 			exception.printStackTrace();
