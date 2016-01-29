@@ -87,7 +87,11 @@ public class JobMessager {
 						abortJobHandler.process(consumerRecord);
 						break;
 					}
-					producer.send(JobMessageFactory.getJobReturnMessage(consumerRecord.key(), "your-job-id",
+					// Send a response back to the Gateway, which will be
+					// listening for this Topic, to signal that the Job was
+					// processed. TODO: Meaningful values for these 3
+					// parameters?
+					producer.send(JobMessageFactory.getJobReturnMessage(consumerRecord.key(), consumerRecord.key(),
 							consumerRecord.key()));
 				}
 			}
