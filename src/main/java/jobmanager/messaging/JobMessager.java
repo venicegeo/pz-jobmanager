@@ -21,6 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Interacts with the Jobs Collection in the Mongo database based on Kafka
+ * messages received.
+ * 
+ * @author Patrick.Doody
+ * 
+ */
 @Component
 public class JobMessager {
 	@Autowired
