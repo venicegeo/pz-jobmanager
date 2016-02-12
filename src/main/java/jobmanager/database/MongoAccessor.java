@@ -15,8 +15,6 @@
  **/
 package jobmanager.database;
 
-import java.net.UnknownHostException;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -57,7 +55,7 @@ public class MongoAccessor {
 	private void initialize() {
 		try {
 			mongoClient = new MongoClient(DATABASE_HOST, DATABASE_PORT);
-		} catch (UnknownHostException exception) {
+		} catch (Exception exception) {
 			System.out.println("Error connecting to MongoDB Instance.");
 			exception.printStackTrace();
 		}
