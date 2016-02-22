@@ -39,6 +39,7 @@ public class UpdateStatusHandler {
 
 	public UpdateStatusHandler(MongoAccessor accessor, PiazzaLogger logger) {
 		this.accessor = accessor;
+		this.logger = logger;
 	}
 
 	public synchronized void process(ConsumerRecord<String, String> consumerRecord) {
