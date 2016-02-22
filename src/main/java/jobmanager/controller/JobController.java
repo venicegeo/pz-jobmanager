@@ -32,10 +32,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.ResourceAccessException;
+
+import util.PiazzaLogger;
 
 @RestController
 public class JobController {
+	@Autowired
+	private PiazzaLogger logger;
 	@Autowired
 	private MongoAccessor accessor;
 	private static final String DEFAULT_PAGE_SIZE = "10";
@@ -62,12 +65,16 @@ public class JobController {
 			}
 			// Query for the Job ID
 			Job job = accessor.getJobById(jobId);
+			// If no Job was found.
+			if (job == null) {
+				logger.log(String.format("Job not found for requested ID %s", jobId), PiazzaLogger.WARNING);
+				return new ErrorResponse(jobId, "Job Not Found.", "Job Manager");
+			}
 			// Return Job Status
+			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
 			return new JobStatusResponse(job);
-		} catch (ResourceAccessException exception) {
-			return new ErrorResponse(jobId, exception.getMessage(), "Job Manager");
 		} catch (Exception exception) {
-			exception.printStackTrace();
+			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
 			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
 		}
 	}

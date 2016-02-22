@@ -20,6 +20,8 @@ import model.job.Job;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import util.PiazzaLogger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -29,9 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  */
 public class CreateJobHandler {
+	private PiazzaLogger logger;
 	private MongoAccessor accessor;
 
-	public CreateJobHandler(MongoAccessor accessor) {
+	public CreateJobHandler(MongoAccessor accessor, PiazzaLogger logger) {
 		this.accessor = accessor;
 	}
 
@@ -41,8 +44,12 @@ public class CreateJobHandler {
 			ObjectMapper mapper = new ObjectMapper();
 			Job job = mapper.readValue(consumerRecord.value(), Job.class);
 			accessor.getJobCollection().insert(job);
+			logger.log(String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType()
+					.getType()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			System.out.println("Error adding new Job to Collection: " + exception.getMessage());
+			logger.log(
+					String.format("Error Adding Job %s to Job Table: %s", consumerRecord.key(), exception.getMessage()),
+					PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}

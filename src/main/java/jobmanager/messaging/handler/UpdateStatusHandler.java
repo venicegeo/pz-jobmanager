@@ -23,6 +23,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.mongojack.DBQuery;
 import org.mongojack.DBUpdate;
 
+import util.PiazzaLogger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -32,9 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  */
 public class UpdateStatusHandler {
+	private PiazzaLogger logger;
 	private MongoAccessor accessor;
 
-	public UpdateStatusHandler(MongoAccessor accessor) {
+	public UpdateStatusHandler(MongoAccessor accessor, PiazzaLogger logger) {
 		this.accessor = accessor;
 	}
 
@@ -94,8 +97,10 @@ public class UpdateStatusHandler {
 				// Re-add the Job Entry
 				accessor.getJobCollection().insert(job);
 			}
+			logger.log(String.format("Processed Update Status for Job %s with Status %s", consumerRecord.key(),
+					statusUpdate.getStatus()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			System.out.println("Error updating Job Status in Jobs Collection: " + exception.getMessage());
+			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}

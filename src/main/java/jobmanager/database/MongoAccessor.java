@@ -100,7 +100,7 @@ public class MongoAccessor {
 
 		try {
 			if ((job = getJobCollection().findOne(query)) == null) {
-				throw new ResourceAccessException("Job not found.");
+				return null;
 			}			
 		} catch( MongoTimeoutException mte) {
 			throw new ResourceAccessException("MongoDB instance not available.");

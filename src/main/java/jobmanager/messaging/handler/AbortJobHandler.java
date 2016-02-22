@@ -23,6 +23,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.mongojack.DBQuery;
 import org.mongojack.DBUpdate;
 
+import util.PiazzaLogger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -33,9 +35,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  */
 public class AbortJobHandler {
+	private PiazzaLogger logger;
 	private MongoAccessor accessor;
 
-	public AbortJobHandler(MongoAccessor accessor) {
+	public AbortJobHandler(MongoAccessor accessor, PiazzaLogger logger) {
 		this.accessor = accessor;
 	}
 
@@ -47,8 +50,11 @@ public class AbortJobHandler {
 			// Update the status of the Job
 			accessor.getJobCollection().update(DBQuery.is("jobId", job.getJobId()),
 					DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
+			logger.log(String.format("Aborted the Job %s of Abort Job ID %s", job.getJobId(), consumerRecord.key()),
+					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			System.out.println("Error setting aborted Job status in Collection: " + exception.getMessage());
+			logger.log(String.format("Error setting Aborted status for Job %s", consumerRecord.key()),
+					PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}

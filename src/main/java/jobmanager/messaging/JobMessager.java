@@ -30,11 +30,12 @@ import messaging.job.KafkaClientFactory;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import util.PiazzaLogger;
 
 /**
  * Interacts with the Jobs Collection in the Mongo database based on Kafka
@@ -46,6 +47,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobMessager {
 	@Autowired
+	private PiazzaLogger logger;
+	@Autowired
 	private MongoAccessor accessor;
 	@Value("${kafka.host}")
 	private String KAFKA_HOST;
@@ -53,25 +56,26 @@ public class JobMessager {
 	private String KAFKA_PORT;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
-	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private AbortJobHandler abortJobHandler;
 	private CreateJobHandler createJobHandler;
 	private UpdateStatusHandler updateStatusHandler;
 
+	/**
+	 * Expected for Component instantiation
+	 */
 	public JobMessager() {
 	}
 
 	@PostConstruct
 	public void initialize() {
-		// Initialize the Consumer and Producer
-		producer = KafkaClientFactory.getProducer(KAFKA_HOST, KAFKA_PORT);
+		// Initialize the Consumer
 		consumer = KafkaClientFactory.getConsumer(KAFKA_HOST, KAFKA_PORT, KAFKA_GROUP);
 		// Initialize Handlers
-		abortJobHandler = new AbortJobHandler(accessor);
-		createJobHandler = new CreateJobHandler(accessor);
-		updateStatusHandler = new UpdateStatusHandler(accessor);
+		abortJobHandler = new AbortJobHandler(accessor, logger);
+		createJobHandler = new CreateJobHandler(accessor, logger);
+		updateStatusHandler = new UpdateStatusHandler(accessor, logger);
 		// Immediately Poll on a new thread
 		Thread pollThread = new Thread() {
 			public void run() {
@@ -95,8 +99,7 @@ public class JobMessager {
 				// Handle new Messages on this topic.
 				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
 					// Logging
-					System.out.println("Received job with topic " + consumerRecord.topic() + " and key "
-							+ consumerRecord.key() + " with value " + consumerRecord.value());
+					logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()), PiazzaLogger.INFO);
 					// Delegate by Topic
 					switch (consumerRecord.topic()) {
 					case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
@@ -112,6 +115,8 @@ public class JobMessager {
 				}
 			}
 		} catch (WakeupException exception) {
+			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()),
+					PiazzaLogger.FATAL);
 			// Ignore exception if closing
 			if (!closed.get()) {
 				throw exception;
