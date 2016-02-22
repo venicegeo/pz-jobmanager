@@ -98,19 +98,26 @@ public class JobMessager {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
 				// Handle new Messages on this topic.
 				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
-					// Logging
-					logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()), PiazzaLogger.INFO);
-					// Delegate by Topic
-					switch (consumerRecord.topic()) {
-					case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
-						createJobHandler.process(consumerRecord);
-						break;
-					case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
-						updateStatusHandler.process(consumerRecord);
-						break;
-					case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
-						abortJobHandler.process(consumerRecord);
-						break;
+					try {
+						// Logging
+						logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(),
+								consumerRecord.key()), PiazzaLogger.INFO);
+						// Delegate by Topic
+						switch (consumerRecord.topic()) {
+						case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
+							createJobHandler.process(consumerRecord);
+							break;
+						case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
+							updateStatusHandler.process(consumerRecord);
+							break;
+						case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
+							abortJobHandler.process(consumerRecord);
+							break;
+						}
+					} catch (Exception exception) {
+						exception.printStackTrace();
+						logger.log(String.format("Error processing Job with Key %s under Topic %s",
+								consumerRecord.key(), consumerRecord.topic()), PiazzaLogger.ERROR);
 					}
 				}
 			}

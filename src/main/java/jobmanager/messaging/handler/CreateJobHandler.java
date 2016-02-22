@@ -36,6 +36,7 @@ public class CreateJobHandler {
 
 	public CreateJobHandler(MongoAccessor accessor, PiazzaLogger logger) {
 		this.accessor = accessor;
+		this.logger = logger;
 	}
 
 	public void process(ConsumerRecord<String, String> consumerRecord) {
