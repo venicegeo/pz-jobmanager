@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.CreateJobHandler;
+import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
 import messaging.job.JobMessageFactory;
 import messaging.job.KafkaClientFactory;
@@ -30,12 +31,14 @@ import messaging.job.KafkaClientFactory;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
+import util.UUIDFactory;
 
 /**
  * Interacts with the Jobs Collection in the Mongo database based on Kafka
@@ -49,6 +52,8 @@ public class JobMessager {
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
+	private UUIDFactory uuidFactory;
+	@Autowired
 	private MongoAccessor accessor;
 	@Value("${kafka.host}")
 	private String KAFKA_HOST;
@@ -56,11 +61,14 @@ public class JobMessager {
 	private String KAFKA_PORT;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
+	private final String REPEAT_JOB_TYPE = "repeat";
+	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private AbortJobHandler abortJobHandler;
 	private CreateJobHandler createJobHandler;
 	private UpdateStatusHandler updateStatusHandler;
+	private RepeatJobHandler repeatJobHandler;
 
 	/**
 	 * Expected for Component instantiation
@@ -70,12 +78,14 @@ public class JobMessager {
 
 	@PostConstruct
 	public void initialize() {
-		// Initialize the Consumer
+		// Initialize the Consumer and Producer
 		consumer = KafkaClientFactory.getConsumer(KAFKA_HOST, KAFKA_PORT, KAFKA_GROUP);
+		producer = KafkaClientFactory.getProducer(KAFKA_HOST, KAFKA_PORT);
 		// Initialize Handlers
 		abortJobHandler = new AbortJobHandler(accessor, logger);
 		createJobHandler = new CreateJobHandler(accessor, logger);
 		updateStatusHandler = new UpdateStatusHandler(accessor, logger);
+		repeatJobHandler = new RepeatJobHandler(accessor, producer, logger, uuidFactory);
 		// Immediately Poll on a new thread
 		Thread pollThread = new Thread() {
 			public void run() {
@@ -92,7 +102,7 @@ public class JobMessager {
 		try {
 			// Subscribe to all Topics of concern
 			consumer.subscribe(Arrays.asList(JobMessageFactory.CREATE_JOB_TOPIC_NAME,
-					JobMessageFactory.UPDATE_JOB_TOPIC_NAME, JobMessageFactory.ABORT_JOB_TOPIC_NAME));
+					JobMessageFactory.UPDATE_JOB_TOPIC_NAME, JobMessageFactory.ABORT_JOB_TOPIC_NAME, REPEAT_JOB_TYPE));
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
@@ -112,6 +122,9 @@ public class JobMessager {
 							break;
 						case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
 							abortJobHandler.process(consumerRecord);
+							break;
+						case REPEAT_JOB_TYPE:
+							repeatJobHandler.process(consumerRecord);
 							break;
 						}
 					} catch (Exception exception) {
