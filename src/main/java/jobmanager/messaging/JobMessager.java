@@ -109,24 +109,7 @@ public class JobMessager {
 				// Handle new Messages on this topic.
 				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
 					try {
-						// Logging
-						logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(),
-								consumerRecord.key()), PiazzaLogger.INFO);
-						// Delegate by Topic
-						switch (consumerRecord.topic()) {
-						case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
-							createJobHandler.process(consumerRecord);
-							break;
-						case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
-							updateStatusHandler.process(consumerRecord);
-							break;
-						case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
-							abortJobHandler.process(consumerRecord);
-							break;
-						case REPEAT_JOB_TYPE:
-							repeatJobHandler.process(consumerRecord);
-							break;
-						}
+						processMessage(consumerRecord);
 					} catch (Exception exception) {
 						exception.printStackTrace();
 						logger.log(String.format("Error processing Job with Key %s under Topic %s",
@@ -143,6 +126,36 @@ public class JobMessager {
 			}
 		} finally {
 			consumer.close();
+		}
+	}
+
+	/**
+	 * Processes an incoming Kafka Message. This will pass it off to the
+	 * appropriate handler that will make the necessary changes to the Jobs
+	 * Table.
+	 * 
+	 * @param consumerRecord
+	 *            The message to process.
+	 */
+	public void processMessage(ConsumerRecord<String, String> consumerRecord) throws Exception {
+		// Logging
+		logger.log(
+				String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
+				PiazzaLogger.INFO);
+		// Delegate by Topic
+		switch (consumerRecord.topic()) {
+		case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
+			createJobHandler.process(consumerRecord);
+			break;
+		case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
+			updateStatusHandler.process(consumerRecord);
+			break;
+		case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
+			abortJobHandler.process(consumerRecord);
+			break;
+		case REPEAT_JOB_TYPE:
+			repeatJobHandler.process(consumerRecord);
+			break;
 		}
 	}
 }
