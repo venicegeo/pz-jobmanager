@@ -174,6 +174,26 @@ public class JobController {
 	}
 
 	/**
+	 * Gets the list of all Jobs for a certain user ID.
+	 * 
+	 * @param page
+	 *            The start page
+	 * @param pageSize
+	 *            The number of results per page
+	 * @param apiKey
+	 *            The API Key of the user to query Jobs for.
+	 * @return
+	 */
+	@RequestMapping(value = "/job/apikey/{apiKey}", method = RequestMethod.GET)
+	public List<Job> getJobsByApiKey(
+			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
+			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
+			@PathVariable(value = "apiKey") String apiKey) {
+		return accessor.getJobCollection().find(DBQuery.is("apiKey", apiKey))
+				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
+	}
+
+	/**
 	 * Drops the Mongo collections. This is for internal development use only.
 	 * We should probably remove this in the future. Don't use this.
 	 */
