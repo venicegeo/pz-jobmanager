@@ -188,7 +188,7 @@ public class JobController {
 			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@PathVariable(value = "apiKey") String apiKey) {
-		return accessor.getJobCollection().find(DBQuery.is("apiKey", apiKey))
+		return accessor.getJobCollection().find(DBQuery.is("submitterApiKey", apiKey))
 				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
 	}
 
