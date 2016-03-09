@@ -126,7 +126,6 @@ public class JobController {
 	public List<String> getStatuses() {
 		List<String> statuses = new ArrayList<String>();
 		statuses.add(StatusUpdate.STATUS_CANCELLED);
-		statuses.add(StatusUpdate.STATUS_COMPLETE);
 		statuses.add(StatusUpdate.STATUS_ERROR);
 		statuses.add(StatusUpdate.STATUS_FAIL);
 		statuses.add(StatusUpdate.STATUS_PENDING);
