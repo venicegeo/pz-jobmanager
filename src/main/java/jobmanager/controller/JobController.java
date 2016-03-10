@@ -16,7 +16,9 @@
 package jobmanager.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
@@ -27,6 +29,8 @@ import model.status.StatusUpdate;
 
 import org.mongojack.DBQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -190,6 +194,27 @@ public class JobController {
 			@PathVariable(value = "apiKey") String apiKey) {
 		return accessor.getJobCollection().find(DBQuery.is("submitterApiKey", apiKey))
 				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
+	}
+
+	/**
+	 * Returns administrative statistics for this component.
+	 * 
+	 * @return Component information
+	 */
+	@RequestMapping(value = "/admin/stats", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getAdminStats() {
+		Map<String, Object> stats = new HashMap<String, Object>();
+		// Add information related to the Jobs in the system
+		stats.put("total", accessor.getJobCollection().getCount());
+		stats.put("success", getStatusCount(StatusUpdate.STATUS_SUCCESS));
+		stats.put("error", getStatusCount(StatusUpdate.STATUS_ERROR));
+		stats.put("fail", getStatusCount(StatusUpdate.STATUS_FAIL));
+		stats.put("running", getStatusCount(StatusUpdate.STATUS_RUNNING));
+		stats.put("pending", getStatusCount(StatusUpdate.STATUS_PENDING));
+		stats.put("submitted", getStatusCount(StatusUpdate.STATUS_SUBMITTED));
+		stats.put("cancelled", getStatusCount(StatusUpdate.STATUS_CANCELLED));
+
+		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
 	}
 
 	/**
