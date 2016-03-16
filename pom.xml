@@ -20,10 +20,9 @@
 			<id>spring-releases</id>
 			<url>https://repo.spring.io/libs-release</url>
 		</repository>
-
 		<repository>
-			<id>nexus</id>
-			<url>https://nexus.devops.geointservices.io/content/repositories/Piazza/</url>
+			<id>s3.snapshot</id>
+			<url>s3://venice-maven-private/snapshot</url>
 		</repository>
 	</repositories>
 
@@ -40,9 +39,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.piazzageo</groupId>
+			<groupId>org.venice.piazza</groupId>
 			<artifactId>pz-jobcommon</artifactId>
-			<version>Sprint01-27-g29ee48b</version>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -89,6 +88,13 @@
 
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>org.kuali.maven.wagons</groupId>
+				<artifactId>maven-s3-wagon</artifactId>
+				<version>1.2.1</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
