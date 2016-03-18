@@ -40,6 +40,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>io.piazzageo</groupId>
 			<artifactId>pz-jobcommon</artifactId>
 			<version>LATEST</version>
