@@ -55,11 +55,8 @@ public class JobMessager {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
-	@Value("${kafka.host}")
-	private String KAFKA_HOST;
-	@Value("${kafka.port}")
-	private String KAFKA_PORT;
-	@Value("${kafka.group}")
+	@Value("${vcap.services.pz-kafka.credentials.host:kafka.dev:9092}")
+	private String KAFKA_ADDRESS;
 	private String KAFKA_GROUP;
 	private final String REPEAT_JOB_TYPE = "repeat";
 	private Producer<String, String> producer;
@@ -78,6 +75,8 @@ public class JobMessager {
 
 	@PostConstruct
 	public void initialize() {
+		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
+		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
 		// Initialize the Consumer and Producer
 		consumer = KafkaClientFactory.getConsumer(KAFKA_HOST, KAFKA_PORT, KAFKA_GROUP);
 		producer = KafkaClientFactory.getProducer(KAFKA_HOST, KAFKA_PORT);
