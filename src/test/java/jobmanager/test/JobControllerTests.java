@@ -24,6 +24,7 @@ import jobmanager.controller.JobController;
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.job.JobProgress;
+import model.job.type.IngestJob;
 import model.response.ErrorResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
@@ -74,6 +75,7 @@ public class JobControllerTests {
 		mockJob.jobId = UUID.randomUUID().toString();
 		mockJob.status = StatusUpdate.STATUS_RUNNING;
 		mockJob.progress = new JobProgress(75);
+		mockJob.jobType = new IngestJob();
 
 		// When we query the Status of the Mock Job's ID, return the Mock Job
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(mockJob);
@@ -85,5 +87,6 @@ public class JobControllerTests {
 		assertTrue(jobStatus.jobId.equals(mockJob.getJobId()));
 		assertTrue(jobStatus.progress.equals(mockJob.progress));
 		assertTrue(jobStatus.status.equals(StatusUpdate.STATUS_RUNNING));
+		assertTrue(jobStatus.jobType.equals(mockJob.getJobType().getType()));
 	}
 }
