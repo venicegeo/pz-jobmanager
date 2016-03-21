@@ -55,7 +55,7 @@ public class JobMessager {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
-	@Value("${vcap.services.pz-kafka.credentials.host:kafka.dev:9092}")
+	@Value("${vcap.services.pz-kafka.credentials.host}")
 	private String KAFKA_ADDRESS;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
