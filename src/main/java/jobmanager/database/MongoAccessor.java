@@ -28,6 +28,7 @@ import org.springframework.web.client.ResourceAccessException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.MongoTimeoutException;
 
 /**
@@ -38,11 +39,9 @@ import com.mongodb.MongoTimeoutException;
  */
 @Component
 public class MongoAccessor {
-	@Value("${mongo.host}")
-	private String DATABASE_HOST;
-	@Value("${mongo.port}")
-	private int DATABASE_PORT;
-	@Value("${mongo.db.name}")
+	@Value("${vcap.services.pz-mongodb.credentials.uri}")
+	private String DATABASE_URI;
+	@Value("${vcap.services.pz-mongodb.credentials.database}")
 	private String DATABASE_NAME;
 	@Value("${mongo.db.collection.name}")
 	private String JOB_COLLECTION_NAME;
@@ -54,7 +53,7 @@ public class MongoAccessor {
 	@PostConstruct
 	private void initialize() {
 		try {
-			mongoClient = new MongoClient(DATABASE_HOST, DATABASE_PORT);
+			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI));
 		} catch (Exception exception) {
 			System.out.println("Error connecting to MongoDB Instance.");
 			exception.printStackTrace();
@@ -101,8 +100,8 @@ public class MongoAccessor {
 		try {
 			if ((job = getJobCollection().findOne(query)) == null) {
 				return null;
-			}			
-		} catch( MongoTimeoutException mte) {
+			}
+		} catch (MongoTimeoutException mte) {
 			throw new ResourceAccessException("MongoDB instance not available.");
 		}
 
