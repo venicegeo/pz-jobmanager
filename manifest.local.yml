@@ -10,3 +10,5 @@ applications:
   services:
     - pz-kafka
     - pz-mongodb
+  env:
+    SPRING_PROFILES_ACTIVE: cloud,fade-test
