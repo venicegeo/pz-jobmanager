@@ -18,6 +18,7 @@ package jobmanager.messaging.handler;
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
+import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -48,21 +49,34 @@ public class AbortJobHandler {
 		// Changing the Status in the Job Table to Aborted
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			AbortJob job = mapper.readValue(consumerRecord.value(), AbortJob.class);
+			PiazzaJobRequest job = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
 			// Update the status of the Job. Only update if the Job is currently
 			// pending or running. Otherwise, we cannot cancel a completed Job.
-			Job jobToCancel = accessor.getJobById(job.getJobId());
+			String jobId = ((AbortJob)job.jobType).jobId;
+			Job jobToCancel = accessor.getJobById(jobId);
+
+			if( jobToCancel.submitterUserName == null ) {
+				logger.log(String.format("Could not Abort Job %s because it does not have a user associated with it", jobId),
+						PiazzaLogger.WARNING);
+				return;
+				
+			} else if ( !jobToCancel.submitterUserName.equals(job.userName) ){
+				logger.log(String.format("Could not Abort Job %s because it was not created by user requesting abort.", jobId),
+						PiazzaLogger.WARNING);
+				return;
+			}
+			
 			String currentStatus = jobToCancel.status;
 			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
-				accessor.getJobCollection().update(DBQuery.is("jobId", job.getJobId()),
+				accessor.getJobCollection().update(DBQuery.is("jobId", jobId),
 						DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
 				logger.log(
-						String.format("Aborted the Job %s of Abort Job ID %s", job.getJobId(), consumerRecord.key()),
+						String.format("Aborted the Job %s of Abort Job ID %s", jobId, consumerRecord.key()),
 						PiazzaLogger.INFO);
 			} else {
-				logger.log(String.format("Could not Abort Job %s because it is no longer running.", job.getJobId()),
+				logger.log(String.format("Could not Abort Job %s because it is no longer running.", jobId),
 						PiazzaLogger.WARNING);
 			}
 
