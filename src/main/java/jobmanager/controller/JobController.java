@@ -183,16 +183,16 @@ public class JobController {
 	 *            The start page
 	 * @param pageSize
 	 *            The number of results per page
-	 * @param apiKey
-	 *            The API Key of the user to query Jobs for.
+	 * @param userName
+	 *            The userName of the user to query Jobs for.
 	 * @return
 	 */
-	@RequestMapping(value = "/job/apikey/{apiKey}", method = RequestMethod.GET)
-	public List<Job> getJobsByApiKey(
+	@RequestMapping(value = "/job/userName/{userName}", method = RequestMethod.GET)
+	public List<Job> getJobsByUserName(
 			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@PathVariable(value = "apiKey") String apiKey) {
-		return accessor.getJobCollection().find(DBQuery.is("submitterApiKey", apiKey))
+			@PathVariable(value = "userName") String userName) {
+		return accessor.getJobCollection().find(DBQuery.is("submitterUserName", userName))
 				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
 	}
 
