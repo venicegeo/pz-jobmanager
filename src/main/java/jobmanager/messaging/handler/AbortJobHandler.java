@@ -61,53 +61,50 @@ public class AbortJobHandler {
 
 			// Update the status of the Job. Only update if the Job is currently
 			// pending or running. Otherwise, we cannot cancel a completed Job.
-			String jobId = ((AbortJob)job.jobType).jobId;
+			String jobId = ((AbortJob) job.jobType).jobId;
 			Job jobToCancel = accessor.getJobById(jobId);
 
-			if( jobToCancel.submitterUserName == null ) {
+			if (jobToCancel.submitterUserName == null) {
 				logger.log(String.format("Could not Abort Job %s because it does not have a user associated with it", jobId),
 						PiazzaLogger.WARNING);
 				return;
-				
-			} else if ( !jobToCancel.submitterUserName.equals(job.userName) ){
+
+			} else if (!jobToCancel.submitterUserName.equals(job.userName)) {
 				logger.log(String.format("Could not Abort Job %s because it was not created by user requesting abort.", jobId),
 						PiazzaLogger.WARNING);
 				return;
 			}
-			
+
 			String currentStatus = jobToCancel.status;
-			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING))
-					|| (currentStatus.equals(StatusUpdate.STATUS_PENDING))
+			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
-				accessor.getJobCollection().update(DBQuery.is("jobId", jobId),
-						DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
-				logger.log(
-						String.format("Aborted the Job %s of Abort Job ID %s", jobId, consumerRecord.key()),
-						PiazzaLogger.INFO);
+				accessor.getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
+				logger.log(String.format("Aborted the Job %s of Abort Job ID %s", jobId, consumerRecord.key()), PiazzaLogger.INFO);
 			} else {
-				logger.log(String.format("Could not Abort Job %s because it is no longer running.", jobId),
-						PiazzaLogger.WARNING);
+				logger.log(String.format("Could not Abort Job %s because it is no longer running.", jobId), PiazzaLogger.WARNING);
 			}
 
 			// post request to workflow
 			dispatchWorkflowEvent(jobToCancel, eventId, workflowUrl, "Job Cancelled");
-			
+
 		} catch (Exception exception) {
-			logger.log(
-					String.format("Error setting Aborted status for Job %s: %s", consumerRecord.key(),
-							exception.getMessage()), PiazzaLogger.ERROR);
+			logger.log(String.format("Error setting Aborted status for Job %s: %s", consumerRecord.key(), exception.getMessage()),
+					PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}
 	
 	/**
-	 * Dispatches the REST POST request to the pz-workflow service for the event
-	 * that data has been successfully ingested.
 	 * 
-	 * @param job
-	 *            The job
-	 * @param dataResource
-	 *            The DataResource that has been ingested
+	 * @param job 
+	 * 			The job being cancelled
+	 * @param eventId 
+	 * 			Injected event id
+	 * @param workflowUrl 
+	 * 			Workflow url to post to.
+	 * @param jobStatus
+	 * 			Job status description being sent to workflow.
+	 * @throws Exception
 	 */
 	private void dispatchWorkflowEvent(Job job, String eventId, String workflowUrl, String jobStatus) throws Exception {
 		RestTemplate restTemplate = new RestTemplate();
@@ -119,12 +116,12 @@ public class AbortJobHandler {
 		ResponseEntity<Object> response = restTemplate.postForEntity(workflowUrl, entity, Object.class);
 		if (response.getStatusCode() == HttpStatus.CREATED) {
 			// The Event was successfully received by pz-workflow
-			logger.log(String.format(
-							"Event for cancel of Job %s was successfully sent to the Workflow Service with response %s",
-							job.getJobId(), response.getBody().toString()), PiazzaLogger.INFO);
+			logger.log(String.format("Event for cancel of Job %s was successfully sent to the Workflow Service with response %s",
+					job.getJobId(), response.getBody().toString()), PiazzaLogger.INFO);
 		} else {
-			// 201 not received. Throw an exception that something went wrong.
-			throw new Exception(String.format("Status code %s received.", response.getStatusCode()));
-}
+			// 201 not received.
+			logger.log(String.format("Event for cancel of Job %s was not success to the Workflow Service with status code %s",
+					job.getJobId(), response.getStatusCode()), PiazzaLogger.INFO);
+		}
 	}
 }
