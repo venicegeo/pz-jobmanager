@@ -85,8 +85,11 @@ public class AbortJobHandler {
 			}
 
 			// post request to workflow
-			dispatchWorkflowEvent(jobToCancel, eventId, workflowUrl, "Job Cancelled");
-
+			try {
+				dispatchWorkflowEvent(jobToCancel, eventId, workflowUrl, "Job Cancelled");
+			} catch (Exception e) {
+				logger.log(String.format("Error occurred while posting event to workflow %s", e.getMessage()), PiazzaLogger.ERROR);
+			}
 		} catch (Exception exception) {
 			logger.log(String.format("Error setting Aborted status for Job %s: %s", consumerRecord.key(), exception.getMessage()),
 					PiazzaLogger.ERROR);
@@ -120,8 +123,7 @@ public class AbortJobHandler {
 					job.getJobId(), response.getBody().toString()), PiazzaLogger.INFO);
 		} else {
 			// 201 not received.
-			logger.log(String.format("Event for cancel of Job %s was not success to the Workflow Service with status code %s",
-					job.getJobId(), response.getStatusCode()), PiazzaLogger.INFO);
+			throw new Exception(String.format("Status code %s received.", response.getStatusCode()));
 		}
 	}
 }
