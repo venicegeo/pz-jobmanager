@@ -68,6 +68,13 @@ public class JobMessager {
 	private UpdateStatusHandler updateStatusHandler;
 	private RepeatJobHandler repeatJobHandler;
 
+	@Value("${pz.workflow.event.id}")
+	private String EVENT_ID;
+
+	@Value("${pz.workflow.url:}")
+	private String WORKFLOW_URL;
+	
+	
 	/**
 	 * Expected for Component instantiation
 	 */
@@ -151,7 +158,7 @@ public class JobMessager {
 			updateStatusHandler.process(consumerRecord);
 			break;
 		case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
-			abortJobHandler.process(consumerRecord);
+			abortJobHandler.process(consumerRecord, EVENT_ID, WORKFLOW_URL);
 			break;
 		case REPEAT_JOB_TYPE:
 			repeatJobHandler.process(consumerRecord);
