@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 import jobmanager.database.MongoAccessor;
+import jobmanager.messaging.handler.AbortJobHandler;
 import model.job.Job;
+import model.job.type.AbortJob;
+import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
@@ -32,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -80,6 +84,31 @@ public class JobController {
 		} catch (Exception exception) {
 			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
 			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
+		}
+	}
+
+	/**
+	 * Aborts a currently running Piazza Job.
+	 * 
+	 * @param request
+	 *            The request, detailing the AbortJob type and the user who has
+	 *            requested this action.
+	 * @return The 200 OK response, or appropriate 500 error message.
+	 */
+	@RequestMapping(value = "/abort", method = RequestMethod.POST)
+	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
+		try {
+			// Abort the Job
+			AbortJobHandler handler = new AbortJobHandler(accessor, logger);
+			handler.process(request);
+			// Log the successful Cancellation
+			logger.log(String.format("Successfully cancelled Job %s by User %s",
+					((AbortJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
+			// Return OK
+			return null;
+		} catch (Exception exception) {
+			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
+			return new ErrorResponse(null, "Error Cancelling Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 
