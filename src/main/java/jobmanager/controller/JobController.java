@@ -20,18 +20,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
+import jobmanager.messaging.handler.RepeatJobHandler;
+import messaging.job.KafkaClientFactory;
 import model.job.Job;
 import model.job.type.AbortJob;
+import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
 
+import org.apache.kafka.clients.producer.Producer;
 import org.mongojack.DBQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,15 +50,36 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import util.PiazzaLogger;
+import util.UUIDFactory;
 
 @RestController
 public class JobController {
+	@Value("${vcap.services.pz-kafka.credentials.host}")
+	private String KAFKA_ADDRESS;
+
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
+	private UUIDFactory uuidFactory;
+	@Autowired
 	private MongoAccessor accessor;
+
+	private Producer<String, String> producer;
 	private static final String DEFAULT_PAGE_SIZE = "10";
 	private static final String DEFAULT_PAGE = "0";
+
+	/**
+	 * Initializing the Kafka Producer on Controller startup.
+	 */
+	@PostConstruct
+	public void init() {
+		producer = KafkaClientFactory.getProducer(KAFKA_ADDRESS.split(":")[0], KAFKA_ADDRESS.split(":")[1]);
+	}
+
+	@PreDestroy
+	public void cleanup() {
+		producer.close();
+	}
 
 	/**
 	 * Returns the Job Status and potential Results of the specified Job ID.
@@ -93,7 +122,8 @@ public class JobController {
 	 * @param request
 	 *            The request, detailing the AbortJob type and the user who has
 	 *            requested this action.
-	 * @return The 200 OK response, or appropriate 500 error message.
+	 * @return null response if successful. ErrorResponse containing appropriate
+	 *         error details on exception.
 	 */
 	@RequestMapping(value = "/abort", method = RequestMethod.POST)
 	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
@@ -109,6 +139,32 @@ public class JobController {
 		} catch (Exception exception) {
 			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
 			return new ErrorResponse(null, "Error Cancelling Job: " + exception.getMessage(), "Job Manager");
+		}
+	}
+
+	/**
+	 * Repeats an existing Job within Piazza.
+	 * 
+	 * @param request
+	 *            The request, detailing the RepeatJob type and the user who has
+	 *            submitted this request.
+	 * @return The response containing the Job ID if successful. Appropriate
+	 *         error details returned on exception.
+	 */
+	@RequestMapping(value = "/repeat", method = RequestMethod.POST)
+	public PiazzaResponse repeatJob(@RequestBody PiazzaJobRequest request) {
+		try {
+			// Repeat the Job
+			RepeatJobHandler handler = new RepeatJobHandler(accessor, producer, logger, uuidFactory);
+			String newJobId = handler.process(request);
+			// Log the successful Repetition of the Job
+			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
+					newJobId, ((RepeatJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
+			// Return the Job ID
+			return new PiazzaResponse(newJobId);
+		} catch (Exception exception) {
+			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
+			return new ErrorResponse(null, "Error Repeating Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 
