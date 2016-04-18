@@ -45,6 +45,7 @@ public class AbortJobHandler {
 		this.logger = logger;
 	}
 
+	@Deprecated
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Changing the Status in the Job Table to Aborted
 		try {
@@ -52,28 +53,27 @@ public class AbortJobHandler {
 			PiazzaJobRequest job = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
 			// Update the status of the Job. Only update if the Job is currently
 			// pending or running. Otherwise, we cannot cancel a completed Job.
-			String jobId = ((AbortJob)job.jobType).jobId;
+			String jobId = ((AbortJob) job.jobType).jobId;
 			Job jobToCancel = accessor.getJobById(jobId);
 
-			if( jobToCancel.submitterUserName == null ) {
-				logger.log(String.format("Could not Abort Job %s because it does not have a user associated with it", jobId),
-						PiazzaLogger.WARNING);
+			if (jobToCancel.submitterUserName == null) {
+				logger.log(String.format("Could not Abort Job %s because it does not have a user associated with it",
+						jobId), PiazzaLogger.WARNING);
 				return;
-				
-			} else if ( !jobToCancel.submitterUserName.equals(job.userName) ){
-				logger.log(String.format("Could not Abort Job %s because it was not created by user requesting abort.", jobId),
-						PiazzaLogger.WARNING);
+
+			} else if (!jobToCancel.submitterUserName.equals(job.userName)) {
+				logger.log(String.format("Could not Abort Job %s because it was not created by user requesting abort.",
+						jobId), PiazzaLogger.WARNING);
 				return;
 			}
-			
+
 			String currentStatus = jobToCancel.status;
 			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
 				accessor.getJobCollection().update(DBQuery.is("jobId", jobId),
 						DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
-				logger.log(
-						String.format("Aborted the Job %s of Abort Job ID %s", jobId, consumerRecord.key()),
+				logger.log(String.format("Aborted the Job %s of Abort Job ID %s", jobId, consumerRecord.key()),
 						PiazzaLogger.INFO);
 			} else {
 				logger.log(String.format("Could not Abort Job %s because it is no longer running.", jobId),
@@ -85,6 +85,35 @@ public class AbortJobHandler {
 					String.format("Error setting Aborted status for Job %s: %s", consumerRecord.key(),
 							exception.getMessage()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
+		}
+	}
+
+	/**
+	 * Processes a Job request to cancel a Piazza job.
+	 * 
+	 * @param request
+	 *            Job request.
+	 */
+	public void process(PiazzaJobRequest request) throws Exception {
+		AbortJob abortJob = (AbortJob) request.jobType;
+		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
+		if (jobToCancel == null) {
+			throw new Exception(String.format("No job could be founding matching ID %s", abortJob.getJobId()));
+		}
+		// Ensure the user has permission to cancel the Job.
+		if ((jobToCancel.submitterUserName == null) || (!jobToCancel.submitterUserName.equals(request.userName))) {
+			throw new Exception(
+					String.format("Could not Abort Job %s because it was not requested by the originating user.",
+							abortJob.getJobId()));
+		}
+		String currentStatus = jobToCancel.status;
+		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
+				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
+			accessor.getJobCollection().update(DBQuery.is("jobId", abortJob.getJobId()),
+					DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
+		} else {
+			throw new Exception(String.format("Could not Abort Job %s because it is no longer running.",
+					abortJob.getJobId()));
 		}
 	}
 }

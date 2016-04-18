@@ -52,6 +52,7 @@ public class RepeatJobHandler {
 		this.uuidFactory = uuidFactory;
 	}
 
+	@Deprecated
 	public void process(ConsumerRecord<String, String> consumerRecord) throws Exception {
 		try {
 			// Flag the Status of this Job to indicate we are handling it.
@@ -108,5 +109,41 @@ public class RepeatJobHandler {
 					consumerRecord.key(), statusUpdate);
 			producer.send(updateJobMessage);
 		}
+	}
+
+	/**
+	 * Processes a job request to repeat a Job within Piazza.
+	 * 
+	 * @param request
+	 *            The request, detailing the user and the job to be repeated.
+	 * @return The ID of the newly created Job.
+	 */
+	public String process(PiazzaJobRequest request) throws Exception {
+		RepeatJob repeatJob = (RepeatJob) request.jobType;
+		String repeatJobId = repeatJob.getJobId();
+
+		// Lookup the Jobs table for the requested Job to Repeat. Ensure it
+		// exists.
+		Job job = accessor.getJobById(repeatJobId);
+		if (job == null) {
+			throw new Exception(String.format("Job %s could not be found.", repeatJobId));
+		}
+
+		// Create a new JobRequest object. The Submitter will be the user
+		// who requested the Job to be repeated. The Job Type will be the
+		// Type of the Job that is to be repeated.
+		PiazzaJobRequest newJobRequest = new PiazzaJobRequest();
+		newJobRequest.userName = job.submitterUserName;
+		newJobRequest.jobType = job.getJobType();
+
+		// Dispatch the Message to Repeat the selected Job. Create an ID so
+		// we can immediately attach a result to the RepeatJob request.
+		String newRepeatJobId = uuidFactory.getUUID();
+		ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(newJobRequest,
+				newRepeatJobId);
+		producer.send(repeatJobMessage).get(); // Ensuring we get Exceptions
+												// immediately
+
+		return newRepeatJobId;
 	}
 }
