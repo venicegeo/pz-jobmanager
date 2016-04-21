@@ -16,6 +16,7 @@
 package jobmanager.messaging;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
@@ -106,8 +107,13 @@ public class JobMessager {
 	public void poll() {
 		try {
 			// Subscribe to all Topics of concern
-			consumer.subscribe(Arrays.asList(CREATE_JOB_TOPIC_NAME, ABORT_JOB_TOPIC_NAME, UPDATE_JOB_TOPIC_NAME,
-					REPEAT_JOB_TOPIC_NAME));
+			List<String> topics = Arrays.asList(CREATE_JOB_TOPIC_NAME, ABORT_JOB_TOPIC_NAME, UPDATE_JOB_TOPIC_NAME,
+					REPEAT_JOB_TOPIC_NAME);
+			consumer.subscribe(topics);
+			// Log that we are listening
+			logger.log(
+					String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_ADDRESS,
+							topics.toString()), PiazzaLogger.INFO);
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
