@@ -61,7 +61,10 @@ public class JobMessager {
 	private String space;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
-	private final String REPEAT_JOB_TYPE = "repeat";
+	private final String CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space);
+	private final String ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space);
+	private final String UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space);
+	private final String REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", space);
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -103,10 +106,8 @@ public class JobMessager {
 	public void poll() {
 		try {
 			// Subscribe to all Topics of concern
-			consumer.subscribe(Arrays.asList(String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space),
-					String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space),
-					String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space),
-					String.format("%s-%s", REPEAT_JOB_TYPE, space)));
+			consumer.subscribe(Arrays.asList(CREATE_JOB_TOPIC_NAME, ABORT_JOB_TOPIC_NAME, UPDATE_JOB_TOPIC_NAME,
+					REPEAT_JOB_TOPIC_NAME));
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
@@ -147,19 +148,17 @@ public class JobMessager {
 				String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
 				PiazzaLogger.INFO);
 		// Delegate by Topic
-		switch (consumerRecord.topic()) {
-		case JobMessageFactory.CREATE_JOB_TOPIC_NAME:
+		if (consumerRecord.topic().equalsIgnoreCase(CREATE_JOB_TOPIC_NAME)) {
 			createJobHandler.process(consumerRecord);
-			break;
-		case JobMessageFactory.UPDATE_JOB_TOPIC_NAME:
+		} else if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
 			updateStatusHandler.process(consumerRecord);
-			break;
-		case JobMessageFactory.ABORT_JOB_TOPIC_NAME:
+		} else if (consumerRecord.topic().equalsIgnoreCase(ABORT_JOB_TOPIC_NAME)) {
 			abortJobHandler.process(consumerRecord);
-			break;
-		case REPEAT_JOB_TYPE:
+		} else if (consumerRecord.topic().equalsIgnoreCase(REPEAT_JOB_TOPIC_NAME)) {
 			repeatJobHandler.process(consumerRecord);
-			break;
+		} else {
+			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()),
+					PiazzaLogger.WARNING);
 		}
 	}
 }
