@@ -62,10 +62,10 @@ public class JobMessager {
 	private String space;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
-	private final String CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space);
-	private final String ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space);
-	private final String UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space);
-	private final String REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", space);
+	private String CREATE_JOB_TOPIC_NAME;
+	private String ABORT_JOB_TOPIC_NAME;
+	private String UPDATE_JOB_TOPIC_NAME;
+	private String REPEAT_JOB_TOPIC_NAME;
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -82,6 +82,11 @@ public class JobMessager {
 
 	@PostConstruct
 	public void initialize() {
+		// Initialize the topics
+		CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space);
+		ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space);
+		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space);
+		REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", space);
 		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
 		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
 		// Initialize the Consumer and Producer
