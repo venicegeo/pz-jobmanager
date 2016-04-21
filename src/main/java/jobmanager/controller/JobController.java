@@ -63,6 +63,8 @@ public class JobController {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
+	@Value("${space}")
+	private String space;
 
 	private Producer<String, String> producer;
 	private static final String DEFAULT_PAGE_SIZE = "10";
@@ -155,7 +157,7 @@ public class JobController {
 	public PiazzaResponse repeatJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Repeat the Job
-			RepeatJobHandler handler = new RepeatJobHandler(accessor, producer, logger, uuidFactory);
+			RepeatJobHandler handler = new RepeatJobHandler(accessor, producer, logger, uuidFactory, space);
 			String newJobId = handler.process(request);
 			// Log the successful Repetition of the Job
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",

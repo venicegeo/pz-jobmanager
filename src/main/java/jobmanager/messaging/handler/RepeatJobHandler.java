@@ -43,13 +43,15 @@ public class RepeatJobHandler {
 	private PiazzaLogger logger;
 	private MongoAccessor accessor;
 	private UUIDFactory uuidFactory;
+	private String space;
 
 	public RepeatJobHandler(MongoAccessor accessor, Producer<String, String> producer, PiazzaLogger logger,
-			UUIDFactory uuidFactory) {
+			UUIDFactory uuidFactory, String space) {
 		this.accessor = accessor;
 		this.producer = producer;
 		this.logger = logger;
 		this.uuidFactory = uuidFactory;
+		this.space = space;
 	}
 
 	@Deprecated
@@ -58,7 +60,7 @@ public class RepeatJobHandler {
 			// Flag the Status of this Job to indicate we are handling it.
 			StatusUpdate statusUpdate = new StatusUpdate(StatusUpdate.STATUS_RUNNING);
 			ProducerRecord<String, String> updateJobMessage = JobMessageFactory.getUpdateStatusMessage(
-					consumerRecord.key(), statusUpdate);
+					consumerRecord.key(), statusUpdate, space);
 			producer.send(updateJobMessage);
 
 			// Deserialize the Job Request to the appropriate Models
@@ -85,7 +87,7 @@ public class RepeatJobHandler {
 			// we can immediately attach a result to the RepeatJob request.
 			String newRepeatJobId = uuidFactory.getUUID();
 			ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(request,
-					newRepeatJobId);
+					newRepeatJobId, space);
 			producer.send(repeatJobMessage).get(); // Ensuring we get Exceptions
 													// immediately
 
@@ -93,7 +95,7 @@ public class RepeatJobHandler {
 			// be linked to the newly created Job.
 			statusUpdate = new StatusUpdate(StatusUpdate.STATUS_SUCCESS);
 			statusUpdate.setResult(new JobResult(newRepeatJobId));
-			updateJobMessage = JobMessageFactory.getUpdateStatusMessage(repeatJob.getJobId(), statusUpdate);
+			updateJobMessage = JobMessageFactory.getUpdateStatusMessage(repeatJob.getJobId(), statusUpdate, space);
 			producer.send(updateJobMessage);
 		} catch (Exception exception) {
 			// Log the error.
@@ -106,7 +108,7 @@ public class RepeatJobHandler {
 			StatusUpdate statusUpdate = new StatusUpdate(StatusUpdate.STATUS_ERROR);
 			statusUpdate.setResult(new ErrorResult("Error Repeating Job.", message));
 			ProducerRecord<String, String> updateJobMessage = JobMessageFactory.getUpdateStatusMessage(
-					consumerRecord.key(), statusUpdate);
+					consumerRecord.key(), statusUpdate, space);
 			producer.send(updateJobMessage);
 		}
 	}
@@ -140,7 +142,7 @@ public class RepeatJobHandler {
 		// we can immediately attach a result to the RepeatJob request.
 		String newRepeatJobId = uuidFactory.getUUID();
 		ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(newJobRequest,
-				newRepeatJobId);
+				newRepeatJobId, space);
 		producer.send(repeatJobMessage).get(); // Ensuring we get Exceptions
 												// immediately
 

@@ -57,6 +57,8 @@ public class JobMessager {
 	private MongoAccessor accessor;
 	@Value("${vcap.services.pz-kafka.credentials.host}")
 	private String KAFKA_ADDRESS;
+	@Value("${space}")
+	private String space;
 	@Value("${kafka.group}")
 	private String KAFKA_GROUP;
 	private final String REPEAT_JOB_TYPE = "repeat";
@@ -85,7 +87,7 @@ public class JobMessager {
 		abortJobHandler = new AbortJobHandler(accessor, logger);
 		createJobHandler = new CreateJobHandler(accessor, logger);
 		updateStatusHandler = new UpdateStatusHandler(accessor, logger);
-		repeatJobHandler = new RepeatJobHandler(accessor, producer, logger, uuidFactory);
+		repeatJobHandler = new RepeatJobHandler(accessor, producer, logger, uuidFactory, space);
 		// Immediately Poll on a new thread
 		Thread pollThread = new Thread() {
 			public void run() {
@@ -101,8 +103,10 @@ public class JobMessager {
 	public void poll() {
 		try {
 			// Subscribe to all Topics of concern
-			consumer.subscribe(Arrays.asList(JobMessageFactory.CREATE_JOB_TOPIC_NAME,
-					JobMessageFactory.UPDATE_JOB_TOPIC_NAME, JobMessageFactory.ABORT_JOB_TOPIC_NAME, REPEAT_JOB_TYPE));
+			consumer.subscribe(Arrays.asList(String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space),
+					String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space),
+					String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space),
+					String.format("%s-%s", REPEAT_JOB_TYPE, space)));
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
