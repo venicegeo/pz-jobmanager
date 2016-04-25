@@ -67,6 +67,9 @@ public class UpdateStatusHandler {
 				Job job = accessor.getJobById(consumerRecord.key());
 				// Update the Job Result
 				job.result = statusUpdate.getResult();
+				logger.log(
+						String.format("Setting the result of Job %s to %s", consumerRecord.key(),
+								mapper.writeValueAsString(job.result)), PiazzaLogger.INFO);
 				/**
 				 * It is important to note that we are not doing an update of
 				 * the Mongo Resource here, as one would expect. This is due to
@@ -98,8 +101,8 @@ public class UpdateStatusHandler {
 				// Re-add the Job Entry
 				accessor.getJobCollection().insert(job);
 			}
-			logger.log(String.format("Processed Update Status for Job %s with Status %s", consumerRecord.key(),
-					statusUpdate.getStatus()), PiazzaLogger.INFO);
+			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s",
+					consumerRecord.key(), statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
