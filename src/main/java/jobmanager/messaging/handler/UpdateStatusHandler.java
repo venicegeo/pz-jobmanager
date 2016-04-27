@@ -67,9 +67,7 @@ public class UpdateStatusHandler {
 				Job job = accessor.getJobById(consumerRecord.key());
 				// Update the Job Result
 				job.result = statusUpdate.getResult();
-				logger.log(
-						String.format("Setting the result of Job %s to %s", consumerRecord.key(),
-								mapper.writeValueAsString(job.result)), PiazzaLogger.INFO);
+
 				/**
 				 * It is important to note that we are not doing an update of
 				 * the Mongo Resource here, as one would expect. This is due to
