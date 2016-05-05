@@ -130,7 +130,7 @@ public class JobController {
 	@RequestMapping(value = "/abort", method = RequestMethod.POST)
 	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
-			// Abort the Job
+			// Abort the Job in the Jobs table.
 			AbortJobHandler handler = new AbortJobHandler(accessor, logger);
 			handler.process(request);
 			// Log the successful Cancellation
