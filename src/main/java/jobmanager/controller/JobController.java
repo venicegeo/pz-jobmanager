@@ -37,7 +37,9 @@ import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.producer.Producer;
+import org.mongojack.DBCursor;
 import org.mongojack.DBQuery;
+import org.mongojack.DBSort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -130,7 +132,7 @@ public class JobController {
 	@RequestMapping(value = "/abort", method = RequestMethod.POST)
 	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
-			// Abort the Job
+			// Abort the Job in the Jobs table.
 			AbortJobHandler handler = new AbortJobHandler(accessor, logger);
 			handler.process(request);
 			// Log the successful Cancellation
@@ -185,9 +187,20 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job", method = RequestMethod.GET)
 	public List<Job> getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
-			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize) {
-		return accessor.getJobCollection().find().skip(Integer.parseInt(page) * Integer.parseInt(pageSize))
-				.limit(Integer.parseInt(pageSize)).toArray();
+			@RequestParam(value = "per_page", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
+			@RequestParam(value = "order", required = false, defaultValue = DEFAULT_PAGE_SIZE) String order) {
+		// Get all of the Jobs.
+		DBCursor<Job> cursor = accessor.getJobCollection().find();
+		// If sorting is enabled, then sort the response.
+		if ((order != null) && (order.isEmpty() == false)) {
+			if (order.equalsIgnoreCase("ascending")) {
+				cursor = cursor.sort(DBSort.asc("submitted"));
+			} else if (order.equalsIgnoreCase("descending")) {
+				cursor = cursor.sort(DBSort.desc("submitted"));
+			}
+		}
+		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
+				.toArray();
 	}
 
 	/**
