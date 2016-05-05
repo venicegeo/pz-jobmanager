@@ -42,9 +42,14 @@ public class CreateJobHandler {
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Inserting Job Information into the Job Table
 		try {
+logger.log(String.format("**Unmarshalling create job message"), PiazzaLogger.INFO);
 			ObjectMapper mapper = new ObjectMapper();
 			Job job = mapper.readValue(consumerRecord.value(), Job.class);
+logger.log(String.format("**Unmarshalling complete"), PiazzaLogger.INFO);
+
+logger.log(String.format("**Persisting job metadata into mongo"), PiazzaLogger.INFO);
 			accessor.getJobCollection().insert(job);
+logger.log(String.format("**Persisting job metadata into mongo complete"), PiazzaLogger.INFO);
 			logger.log(String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType()
 					.getType()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
