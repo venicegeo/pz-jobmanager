@@ -87,6 +87,16 @@ public class JobController {
 	}
 
 	/**
+	 * Healthcheck required for all Piazza Core Services
+	 * 
+	 * @return String
+	 */
+	@RequestMapping(value = "/", method = RequestMethod.GET)
+	public String getHealthCheck() {
+		return "Hello, Health Check here for pz-jobmanager.";
+	}
+	
+	/**
 	 * Returns the Job Status and potential Results of the specified Job ID.
 	 * This is used when the Gateway needs a synchronous, non-Kafka, response
 	 * for the specific status of a Job.
