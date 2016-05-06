@@ -44,14 +44,25 @@ public class CreateJobHandler {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			Job job = mapper.readValue(consumerRecord.value(), Job.class);
-			accessor.getJobCollection().insert(job);
-			logger.log(String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType()
-					.getType()), PiazzaLogger.INFO);
+			process(job);
 		} catch (Exception exception) {
 			logger.log(
 					String.format("Error Adding Job %s to Job Table: %s", consumerRecord.key(), exception.getMessage()),
 					PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
+	}
+
+	/**
+	 * Adds Job information to the Job table.
+	 * 
+	 * @param job
+	 *            The job to add.
+	 */
+	public void process(Job job) {
+		accessor.getJobCollection().insert(job);
+		logger.log(
+				String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType().getType()),
+				PiazzaLogger.INFO);
 	}
 }

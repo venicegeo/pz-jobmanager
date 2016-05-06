@@ -25,6 +25,7 @@ import javax.annotation.PreDestroy;
 
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
+import jobmanager.messaging.handler.CreateJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import messaging.job.KafkaClientFactory;
 import model.job.Job;
@@ -117,6 +118,28 @@ public class JobController {
 		} catch (Exception exception) {
 			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
 			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
+		}
+	}
+
+	/**
+	 * Acts like the "Create-Job" kafka topic handler. This will insert Job
+	 * information into the Jobs table and set the state to "Submitted."
+	 * 
+	 * @param job
+	 *            The job information to add to the table.
+	 * @return OK if added. Error if not.
+	 */
+	@RequestMapping(value = "/createJob", method = RequestMethod.POST)
+	public PiazzaResponse createJob(@RequestBody Job job) {
+		try {
+			CreateJobHandler jobHandler = new CreateJobHandler(accessor, logger);
+			jobHandler.process(job);
+			return null;
+		} catch (Exception exception) {
+			String error = String.format("Error committing Job %s to the database: %s", job.getJobId(),
+					exception.getMessage());
+			logger.log(error, PiazzaLogger.ERROR);
+			return new ErrorResponse(job.getJobId(), error, "Job Manager");
 		}
 	}
 
