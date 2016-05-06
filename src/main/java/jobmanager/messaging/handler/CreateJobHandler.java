@@ -42,6 +42,7 @@ public class CreateJobHandler {
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Inserting Job Information into the Job Table
 		try {
+			logger.log(String.format("**Unmarshalling create job message"), PiazzaLogger.INFO);
 			ObjectMapper mapper = new ObjectMapper();
 			Job job = mapper.readValue(consumerRecord.value(), Job.class);
 			process(job);

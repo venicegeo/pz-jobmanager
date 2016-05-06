@@ -125,6 +125,8 @@ public class JobMessager {
 				// Handle new Messages on this topic.
 				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
 					try {
+						logger.log(String.format("**JobManager received a message topic: %s", consumerRecord.topic()),
+								PiazzaLogger.INFO);
 						processMessage(consumerRecord);
 					} catch (Exception exception) {
 						exception.printStackTrace();
