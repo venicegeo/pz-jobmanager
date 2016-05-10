@@ -24,6 +24,8 @@ import model.status.StatusUpdate;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.mongojack.DBQuery;
 import org.mongojack.DBUpdate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
 
@@ -36,15 +38,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Patrick.Doody
  * 
  */
+@Component
 public class AbortJobHandler {
+	@Autowired
 	private PiazzaLogger logger;
+	@Autowired
 	private MongoAccessor accessor;
 
-	public AbortJobHandler(MongoAccessor accessor, PiazzaLogger logger) {
-		this.accessor = accessor;
-		this.logger = logger;
-	}
-
+	@Deprecated
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Changing the Status in the Job Table to Aborted
 		try {

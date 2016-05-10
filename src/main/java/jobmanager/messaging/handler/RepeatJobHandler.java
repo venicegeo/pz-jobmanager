@@ -27,6 +27,9 @@ import model.status.StatusUpdate;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
 import util.UUIDFactory;
@@ -38,20 +41,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Patrick.Doody
  */
+@Component
 public class RepeatJobHandler {
-	private Producer<String, String> producer;
+	@Autowired
 	private PiazzaLogger logger;
+	@Autowired
 	private MongoAccessor accessor;
+	@Autowired
 	private UUIDFactory uuidFactory;
+	@Value("${space}")
 	private String space;
 
-	public RepeatJobHandler(MongoAccessor accessor, Producer<String, String> producer, PiazzaLogger logger,
-			UUIDFactory uuidFactory, String space) {
-		this.accessor = accessor;
+	private Producer<String, String> producer;
+
+	/**
+	 * Sets the producer for this Handler. Uses injection from the Job Messager
+	 * in order to be efficient in creating only one producer, as producers are
+	 * thread-safe.
+	 * 
+	 * @param producer
+	 *            The producer.
+	 */
+	public void setProducer(Producer<String, String> producer) {
 		this.producer = producer;
-		this.logger = logger;
-		this.uuidFactory = uuidFactory;
-		this.space = space;
 	}
 
 	@Deprecated
