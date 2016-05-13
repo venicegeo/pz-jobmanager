@@ -25,6 +25,7 @@ import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.CreateJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
 import messaging.job.JobMessageFactory;
 import messaging.job.KafkaClientFactory;
@@ -56,6 +57,18 @@ public class JobMessager {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
+
+	@Autowired
+	private AbortJobHandler abortJobHandler;
+	@Autowired
+	private CreateJobHandler createJobHandler;
+	@Autowired
+	private UpdateStatusHandler updateStatusHandler;
+	@Autowired
+	private RepeatJobHandler repeatJobHandler;
+	@Autowired
+	private RequestJobHandler requestJobHandler;
+
 	@Value("${vcap.services.pz-kafka.credentials.host}")
 	private String KAFKA_ADDRESS;
 	@Value("${space}")
@@ -66,13 +79,10 @@ public class JobMessager {
 	private String ABORT_JOB_TOPIC_NAME;
 	private String UPDATE_JOB_TOPIC_NAME;
 	private String REPEAT_JOB_TOPIC_NAME;
+	private String REQUEST_JOB_TOPIC_NAME;
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
-	private AbortJobHandler abortJobHandler;
-	private CreateJobHandler createJobHandler;
-	private UpdateStatusHandler updateStatusHandler;
-	private RepeatJobHandler repeatJobHandler;
 
 	/**
 	 * Expected for Component instantiation
@@ -87,16 +97,15 @@ public class JobMessager {
 		ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space);
 		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space);
 		REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", space);
+		REQUEST_JOB_TOPIC_NAME = String.format("%s-%s", "Request-Job", space);
 		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
 		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
 		// Initialize the Consumer and Producer
 		consumer = KafkaClientFactory.getConsumer(KAFKA_HOST, KAFKA_PORT, KAFKA_GROUP);
 		producer = KafkaClientFactory.getProducer(KAFKA_HOST, KAFKA_PORT);
-		// Initialize Handlers
-		abortJobHandler = new AbortJobHandler(accessor, logger);
-		createJobHandler = new CreateJobHandler(accessor, logger);
-		updateStatusHandler = new UpdateStatusHandler(accessor, logger);
-		repeatJobHandler = new RepeatJobHandler(accessor, producer, logger, uuidFactory, space);
+		// Share the producer
+		repeatJobHandler.setProducer(producer);
+		requestJobHandler.setProducer(producer);
 		// Immediately Poll on a new thread
 		Thread pollThread = new Thread() {
 			public void run() {
@@ -113,7 +122,7 @@ public class JobMessager {
 		try {
 			// Subscribe to all Topics of concern
 			List<String> topics = Arrays.asList(CREATE_JOB_TOPIC_NAME, ABORT_JOB_TOPIC_NAME, UPDATE_JOB_TOPIC_NAME,
-					REPEAT_JOB_TOPIC_NAME);
+					REPEAT_JOB_TOPIC_NAME, REQUEST_JOB_TOPIC_NAME);
 			consumer.subscribe(topics);
 			// Log that we are listening
 			logger.log(
@@ -167,6 +176,8 @@ public class JobMessager {
 			abortJobHandler.process(consumerRecord);
 		} else if (consumerRecord.topic().equalsIgnoreCase(REPEAT_JOB_TOPIC_NAME)) {
 			repeatJobHandler.process(consumerRecord);
+		} else if (consumerRecord.topic().equalsIgnoreCase(REQUEST_JOB_TOPIC_NAME)) {
+			requestJobHandler.process(consumerRecord);
 		} else {
 			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()),
 					PiazzaLogger.WARNING);

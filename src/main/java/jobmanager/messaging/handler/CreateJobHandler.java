@@ -19,6 +19,8 @@ import jobmanager.database.MongoAccessor;
 import model.job.Job;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
 
@@ -27,18 +29,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Creates corresponding entries in the Jobs table for the Kafka Message
  * 
+ * When the old API has been completely removed, this handler will be deprecated
+ * completely by the Request Job handler. All logic will happen in that handler;
+ * and this one can be removed.
+ * 
  * @author Patrick.Doody
  * 
  */
+@Component
 public class CreateJobHandler {
+	@Autowired
 	private PiazzaLogger logger;
+	@Autowired
 	private MongoAccessor accessor;
 
-	public CreateJobHandler(MongoAccessor accessor, PiazzaLogger logger) {
-		this.accessor = accessor;
-		this.logger = logger;
-	}
-
+	@Deprecated
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Inserting Job Information into the Job Table
 		try {
@@ -56,9 +61,16 @@ public class CreateJobHandler {
 	/**
 	 * Adds Job information to the Job table.
 	 * 
+	 * <p>
+	 * When the old API has been completely removed, this handler will be
+	 * deprecated completely by the Request Job handler. All logic will happen
+	 * in that handler; and this one can be removed.
+	 * </p>
+	 * 
 	 * @param job
 	 *            The job to add.
 	 */
+	@Deprecated
 	public void process(Job job) {
 		accessor.getJobCollection().insert(job);
 		logger.log(

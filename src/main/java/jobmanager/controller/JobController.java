@@ -66,6 +66,12 @@ public class JobController {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
+	@Autowired
+	private CreateJobHandler createJobHandler;
+	@Autowired
+	private AbortJobHandler abortJobHandler;
+	@Autowired
+	private RepeatJobHandler repeatJobHandler;
 	@Value("${space}")
 	private String space;
 
@@ -95,7 +101,7 @@ public class JobController {
 	public String getHealthCheck() {
 		return "Hello, Health Check here for pz-jobmanager.";
 	}
-	
+
 	/**
 	 * Returns the Job Status and potential Results of the specified Job ID.
 	 * This is used when the Gateway needs a synchronous, non-Kafka, response
@@ -135,6 +141,11 @@ public class JobController {
 	 * Acts like the "Create-Job" kafka topic handler. This will insert Job
 	 * information into the Jobs table and set the state to "Submitted."
 	 * 
+	 * <p>
+	 * This will be deprecated once the legacy API is removed; at which point
+	 * this endpoint can be deleted.
+	 * </p>
+	 * 
 	 * @param job
 	 *            The job information to add to the table.
 	 * @return OK if added. Error if not.
@@ -142,8 +153,7 @@ public class JobController {
 	@RequestMapping(value = "/createJob", method = RequestMethod.POST)
 	public PiazzaResponse createJob(@RequestBody Job job) {
 		try {
-			CreateJobHandler jobHandler = new CreateJobHandler(accessor, logger);
-			jobHandler.process(job);
+			createJobHandler.process(job);
 			return null;
 		} catch (Exception exception) {
 			String error = String.format("Error committing Job %s to the database: %s", job.getJobId(),
@@ -166,8 +176,7 @@ public class JobController {
 	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Abort the Job in the Jobs table.
-			AbortJobHandler handler = new AbortJobHandler(accessor, logger);
-			handler.process(request);
+			abortJobHandler.process(request);
 			// Log the successful Cancellation
 			logger.log(String.format("Successfully cancelled Job %s by User %s",
 					((AbortJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
@@ -192,8 +201,7 @@ public class JobController {
 	public PiazzaResponse repeatJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Repeat the Job
-			RepeatJobHandler handler = new RepeatJobHandler(accessor, producer, logger, uuidFactory, space);
-			String newJobId = handler.process(request);
+			String newJobId = repeatJobHandler.process(request);
 			// Log the successful Repetition of the Job
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
 					newJobId, ((RepeatJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
