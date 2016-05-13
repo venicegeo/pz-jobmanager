@@ -5,13 +5,12 @@ import messaging.job.JobMessageFactory;
 import model.job.Job;
 import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
-import model.response.ErrorResponse;
-import model.response.PiazzaResponse;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
 import util.UUIDFactory;
@@ -30,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Patrick.Doody
  *
  */
+@Component
 public class RequestJobHandler {
 	@Autowired
 	private PiazzaLogger logger;
