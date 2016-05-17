@@ -3,7 +3,6 @@ applications:
   host: pz-jobmanager
   path: pz-jobmanager.jar
   buildpack: java_buildpack_offline
-  domain: dev.geointservices.io
   memory: 512M
   instances: 1
   timeout: 80
