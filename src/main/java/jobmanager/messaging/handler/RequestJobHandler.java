@@ -41,8 +41,8 @@ public class RequestJobHandler {
 	private AbortJobHandler abortJobHandler;
 	@Autowired
 	private CreateJobHandler createJobHandler;
-	@Value("${space}")
-	private String space;
+	@Value("${SPACE}")
+	private String SPACE;
 
 	private Producer<String, String> producer;
 
@@ -92,7 +92,7 @@ public class RequestJobHandler {
 				// Send the content of the actual Job under the
 				// topic name of the Job type for all workers to
 				// listen to.
-				producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, space)).get();
+				producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
 			}
 			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getType()),
 					PiazzaLogger.INFO);
