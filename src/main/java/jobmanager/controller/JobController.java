@@ -72,8 +72,8 @@ public class JobController {
 	private AbortJobHandler abortJobHandler;
 	@Autowired
 	private RepeatJobHandler repeatJobHandler;
-	@Value("${space}")
-	private String space;
+	@Value("${SPACE}")
+	private String SPACE;
 
 	private Producer<String, String> producer;
 	private static final String DEFAULT_PAGE_SIZE = "10";

@@ -71,9 +71,9 @@ public class JobMessager {
 
 	@Value("${vcap.services.pz-kafka.credentials.host}")
 	private String KAFKA_ADDRESS;
-	@Value("${space}")
-	private String space;
-	@Value("${kafka.group}")
+	@Value("${SPACE}")
+	private String SPACE;
+	@Value("#{'${kafka.group}' + '-' + '${SPACE}'}")
 	private String KAFKA_GROUP;
 	private String CREATE_JOB_TOPIC_NAME;
 	private String ABORT_JOB_TOPIC_NAME;
@@ -93,11 +93,11 @@ public class JobMessager {
 	@PostConstruct
 	public void initialize() {
 		// Initialize the topics
-		CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, space);
-		ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, space);
-		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, space);
-		REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", space);
-		REQUEST_JOB_TOPIC_NAME = String.format("%s-%s", "Request-Job", space);
+		CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, SPACE);
+		ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, SPACE);
+		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, SPACE);
+		REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", SPACE);
+		REQUEST_JOB_TOPIC_NAME = String.format("%s-%s", "Request-Job", SPACE);
 		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
 		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
 		// Initialize the Consumer and Producer

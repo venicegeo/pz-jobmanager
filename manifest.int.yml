@@ -3,7 +3,6 @@ applications:
   host: pz-jobmanager
   path: pz-jobmanager.jar
   buildpack: java_buildpack_offline
-  domain: int.geointservices.io
   memory: 512M
   instances: 1
   timeout: 80
@@ -11,4 +10,4 @@ applications:
     - pz-kafka
     - pz-mongodb
   env:
-    SPRING_PROFILES_ACTIVE: cloud,fade-int
+    SPRING_PROFILES_ACTIVE: cloud
