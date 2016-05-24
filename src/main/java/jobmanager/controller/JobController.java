@@ -229,7 +229,7 @@ public class JobController {
 	@RequestMapping(value = "/job", method = RequestMethod.GET)
 	public List<Job> getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "per_page", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@RequestParam(value = "order", required = false, defaultValue = DEFAULT_PAGE_SIZE) String order) {
+			@RequestParam(value = "order", required = false) String order) {
 		// Get all of the Jobs.
 		DBCursor<Job> cursor = accessor.getJobCollection().find();
 		// If sorting is enabled, then sort the response.
