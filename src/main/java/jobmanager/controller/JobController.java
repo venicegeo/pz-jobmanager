@@ -312,9 +312,19 @@ public class JobController {
 	public List<Job> getJobsByStatus(
 			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@PathVariable(value = "status") String status) {
-		return accessor.getJobCollection().find(DBQuery.is("status", status))
-				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
+			@PathVariable(value = "status") String status, @RequestParam(value = "order", required = false) String order) {
+		// Get all of the Jobs.
+		DBCursor<Job> cursor = accessor.getJobCollection().find(DBQuery.is("status", status));
+		// If sorting is enabled, then sort the response.
+		if ((order != null) && (order.isEmpty() == false)) {
+			if (order.equalsIgnoreCase("ascending")) {
+				cursor = cursor.sort(DBSort.asc("submitted"));
+			} else if (order.equalsIgnoreCase("descending")) {
+				cursor = cursor.sort(DBSort.desc("submitted"));
+			}
+		}
+		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
+				.toArray();
 	}
 
 	/**
@@ -332,9 +342,20 @@ public class JobController {
 	public List<Job> getJobsByUserName(
 			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@PathVariable(value = "userName") String userName) {
-		return accessor.getJobCollection().find(DBQuery.is("submitterUserName", userName))
-				.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize)).toArray();
+			@PathVariable(value = "userName") String userName,
+			@RequestParam(value = "order", required = false) String order) {
+		// Get all of the Jobs.
+		DBCursor<Job> cursor = accessor.getJobCollection().find(DBQuery.is("submitterUserName", userName));
+		// If sorting is enabled, then sort the response.
+		if ((order != null) && (order.isEmpty() == false)) {
+			if (order.equalsIgnoreCase("ascending")) {
+				cursor = cursor.sort(DBSort.asc("submitted"));
+			} else if (order.equalsIgnoreCase("descending")) {
+				cursor = cursor.sort(DBSort.desc("submitted"));
+			}
+		}
+		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
+				.toArray();
 	}
 
 	/**
