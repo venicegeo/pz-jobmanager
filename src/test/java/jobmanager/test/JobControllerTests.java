@@ -16,14 +16,15 @@
 package jobmanager.test;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jobmanager.controller.JobController;
@@ -48,6 +49,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import util.PiazzaLogger;
 
@@ -230,6 +233,24 @@ public class JobControllerTests {
 		assertTrue(statuses.contains(StatusUpdate.STATUS_RUNNING));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_SUBMITTED));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_SUCCESS));
+	}
+
+	/**
+	 * Test /admin/stats
+	 */
+	@Test
+	public void testAdminStats() {
+		// Mock
+		when(accessor.getJobsCount()).thenReturn(new Long(10));
+		when(accessor.getJobStatusCount(anyString())).thenReturn(10);
+
+		// Test
+		ResponseEntity<Map<String, Object>> entity = jobController.getAdminStats();
+
+		// Verify
+		assertTrue(entity.getStatusCode().equals(HttpStatus.OK));
+		Map<String, Object> stats = entity.getBody();
+		assertTrue(stats.keySet().size() >= 8);
 	}
 
 	/**

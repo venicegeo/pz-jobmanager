@@ -280,7 +280,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/status/{status}/count", method = RequestMethod.GET)
 	public int getStatusCount(@PathVariable(value = "status") String status) {
-		return accessor.getJobCollection().find(DBQuery.is("status", status)).count();
+		return accessor.getJobStatusCount(status);
 	}
 
 	/**
@@ -334,7 +334,7 @@ public class JobController {
 	public ResponseEntity<Map<String, Object>> getAdminStats() {
 		Map<String, Object> stats = new HashMap<String, Object>();
 		// Add information related to the Jobs in the system
-		stats.put("total", accessor.getJobCollection().getCount());
+		stats.put("total", accessor.getJobsCount());
 		stats.put("success", getStatusCount(StatusUpdate.STATUS_SUCCESS));
 		stats.put("error", getStatusCount(StatusUpdate.STATUS_ERROR));
 		stats.put("fail", getStatusCount(StatusUpdate.STATUS_FAIL));

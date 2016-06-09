@@ -81,8 +81,7 @@ public class AbortJobHandler {
 		String currentStatus = jobToCancel.status;
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
-			accessor.getJobCollection().update(DBQuery.is("jobId", abortJob.getJobId()),
-					DBUpdate.set("status", StatusUpdate.STATUS_CANCELLED));
+			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLED);
 		} else {
 			throw new Exception(String.format("Could not Abort Job %s because it is no longer running.",
 					abortJob.getJobId()));

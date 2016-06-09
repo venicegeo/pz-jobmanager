@@ -21,10 +21,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import model.job.Job;
+import model.job.JobProgress;
 
 import org.mongojack.DBCursor;
 import org.mongojack.DBQuery;
 import org.mongojack.DBSort;
+import org.mongojack.DBUpdate;
 import org.mongojack.JacksonDBCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -89,6 +91,26 @@ public class MongoAccessor {
 		// they plan to.
 		DBCollection collection = mongoClient.getDB(DATABASE_NAME).getCollection(JOB_COLLECTION_NAME);
 		return JacksonDBCollection.wrap(collection, Job.class, String.class);
+	}
+
+	/**
+	 * Gets the total number of Jobs in the database
+	 * 
+	 * @return Number of jobs in the DB
+	 */
+	public long getJobsCount() {
+		return getJobCollection().getCount();
+	}
+
+	/**
+	 * Gets the number of Jobs for the specific status
+	 * 
+	 * @param status
+	 *            The Status
+	 * @return The number of Jobs for that status
+	 */
+	public int getJobStatusCount(String status) {
+		return getJobCollection().find(DBQuery.is("status", status)).count();
 	}
 
 	/**
@@ -191,6 +213,50 @@ public class MongoAccessor {
 			}
 		}
 		return cursor.skip(page * pageSize).limit(pageSize).toArray();
+	}
+
+	/**
+	 * Updates the status of a Job.
+	 * 
+	 * @param jobId
+	 *            The Job ID
+	 * @param status
+	 *            The Status
+	 */
+	public void updateJobStatus(String jobId, String status) {
+		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("status", status));
+	}
+
+	/**
+	 * Updates the Progress of a Job
+	 * 
+	 * @param jobId
+	 *            The Job ID to update
+	 * @param progress
+	 *            The progres to set
+	 */
+	public void updateJobProgress(String jobId, JobProgress progress) {
+		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("progress", progress));
+	}
+
+	/**
+	 * Deletes a Job entry.
+	 * 
+	 * @param jobId
+	 *            The ID of the job to delete
+	 */
+	public void removeJob(String jobId) {
+		getJobCollection().remove(DBQuery.is("jobId", jobId));
+	}
+
+	/**
+	 * Adds a Job
+	 * 
+	 * @param job
+	 *            The Job
+	 */
+	public void addJob(Job job) {
+		getJobCollection().insert(job);
 	}
 
 }
