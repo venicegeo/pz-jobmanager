@@ -51,14 +51,12 @@ public class UpdateStatusHandler {
 
 			// Update the Job Status, if specified
 			if (!statusUpdate.getStatus().isEmpty()) {
-				accessor.getJobCollection().update(DBQuery.is("jobId", consumerRecord.key()),
-						DBUpdate.set("status", statusUpdate.getStatus()));
+				accessor.updateJobStatus(consumerRecord.key(), statusUpdate.getStatus());
 			}
 
 			// Update the Job progress, if specified
 			if (statusUpdate.getProgress() != null) {
-				accessor.getJobCollection().update(DBQuery.is("jobId", consumerRecord.key()),
-						DBUpdate.set("progress", statusUpdate.getProgress()));
+				accessor.updateJobProgress(consumerRecord.key(), statusUpdate.getProgress());
 			}
 
 			// Update the Result, if specified
@@ -95,9 +93,9 @@ public class UpdateStatusHandler {
 				 * property, which is maintained throughout the transaction.
 				 */
 				// Delete the existing entry for the Job
-				accessor.getJobCollection().remove(DBQuery.is("jobId", consumerRecord.key()));
+				accessor.removeJob(consumerRecord.key());
 				// Re-add the Job Entry
-				accessor.getJobCollection().insert(job);
+				accessor.addJob(job);
 			}
 			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s",
 					consumerRecord.key(), statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);

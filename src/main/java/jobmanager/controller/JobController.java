@@ -230,18 +230,7 @@ public class JobController {
 	public List<Job> getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "per_page", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@RequestParam(value = "order", required = false) String order) {
-		// Get all of the Jobs.
-		DBCursor<Job> cursor = accessor.getJobCollection().find();
-		// If sorting is enabled, then sort the response.
-		if ((order != null) && (order.isEmpty() == false)) {
-			if (order.equalsIgnoreCase("ascending")) {
-				cursor = cursor.sort(DBSort.asc("submitted"));
-			} else if (order.equalsIgnoreCase("descending")) {
-				cursor = cursor.sort(DBSort.desc("submitted"));
-			}
-		}
-		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
-				.toArray();
+		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), order);
 	}
 
 	/**
@@ -291,7 +280,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/status/{status}/count", method = RequestMethod.GET)
 	public int getStatusCount(@PathVariable(value = "status") String status) {
-		return accessor.getJobCollection().find(DBQuery.is("status", status)).count();
+		return accessor.getJobStatusCount(status);
 	}
 
 	/**
@@ -313,18 +302,7 @@ public class JobController {
 			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@PathVariable(value = "status") String status, @RequestParam(value = "order", required = false) String order) {
-		// Get all of the Jobs.
-		DBCursor<Job> cursor = accessor.getJobCollection().find(DBQuery.is("status", status));
-		// If sorting is enabled, then sort the response.
-		if ((order != null) && (order.isEmpty() == false)) {
-			if (order.equalsIgnoreCase("ascending")) {
-				cursor = cursor.sort(DBSort.asc("submitted"));
-			} else if (order.equalsIgnoreCase("descending")) {
-				cursor = cursor.sort(DBSort.desc("submitted"));
-			}
-		}
-		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
-				.toArray();
+		return accessor.getJobsForStatus(Integer.parseInt(page), Integer.parseInt(pageSize), order, status);
 	}
 
 	/**
@@ -344,18 +322,7 @@ public class JobController {
 			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@PathVariable(value = "userName") String userName,
 			@RequestParam(value = "order", required = false) String order) {
-		// Get all of the Jobs.
-		DBCursor<Job> cursor = accessor.getJobCollection().find(DBQuery.is("submitterUserName", userName));
-		// If sorting is enabled, then sort the response.
-		if ((order != null) && (order.isEmpty() == false)) {
-			if (order.equalsIgnoreCase("ascending")) {
-				cursor = cursor.sort(DBSort.asc("submitted"));
-			} else if (order.equalsIgnoreCase("descending")) {
-				cursor = cursor.sort(DBSort.desc("submitted"));
-			}
-		}
-		return cursor.skip(Integer.parseInt(page) * Integer.parseInt(pageSize)).limit(Integer.parseInt(pageSize))
-				.toArray();
+		return accessor.getJobsForUser(Integer.parseInt(page), Integer.parseInt(pageSize), order, userName);
 	}
 
 	/**
@@ -367,7 +334,7 @@ public class JobController {
 	public ResponseEntity<Map<String, Object>> getAdminStats() {
 		Map<String, Object> stats = new HashMap<String, Object>();
 		// Add information related to the Jobs in the system
-		stats.put("total", accessor.getJobCollection().getCount());
+		stats.put("total", accessor.getJobsCount());
 		stats.put("success", getStatusCount(StatusUpdate.STATUS_SUCCESS));
 		stats.put("error", getStatusCount(StatusUpdate.STATUS_ERROR));
 		stats.put("fail", getStatusCount(StatusUpdate.STATUS_FAIL));

@@ -15,11 +15,18 @@
  **/
 package jobmanager.database;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import model.job.Job;
+import model.job.JobProgress;
 
+import org.mongojack.DBCursor;
+import org.mongojack.DBQuery;
+import org.mongojack.DBSort;
+import org.mongojack.DBUpdate;
 import org.mongojack.JacksonDBCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -87,6 +94,26 @@ public class MongoAccessor {
 	}
 
 	/**
+	 * Gets the total number of Jobs in the database
+	 * 
+	 * @return Number of jobs in the DB
+	 */
+	public long getJobsCount() {
+		return getJobCollection().getCount();
+	}
+
+	/**
+	 * Gets the number of Jobs for the specific status
+	 * 
+	 * @param status
+	 *            The Status
+	 * @return The number of Jobs for that status
+	 */
+	public int getJobStatusCount(String status) {
+		return getJobCollection().find(DBQuery.is("status", status)).count();
+	}
+
+	/**
 	 * Returns a Job that matches the specified ID.
 	 * 
 	 * @param jobId
@@ -107,4 +134,129 @@ public class MongoAccessor {
 
 		return job;
 	}
+
+	/**
+	 * Gets a list of Jobs from the database.
+	 * 
+	 * @param page
+	 *            the page number
+	 * @param pageSize
+	 *            the number of results per page
+	 * @param order
+	 *            "ascending" or "descending"
+	 * @param status
+	 *            The status of the Job
+	 * @param userName
+	 *            The username who submitted the Job
+	 * @return The list of jobs
+	 */
+	public List<Job> getJobs(int page, int pageSize, String order) {
+		// Get all of the Jobs.
+		DBCursor<Job> cursor = getJobCollection().find();
+		return getPaginatedResults(cursor, page, pageSize, order);
+	}
+
+	/**
+	 * Gets a list of Jobs from the database for the user
+	 * 
+	 * @param page
+	 *            the page number
+	 * @param pageSize
+	 *            the number of results per page
+	 * @param order
+	 *            "ascending" or "descending"
+	 * @param userName
+	 *            The username who submitted the Job
+	 * @return The list of jobs
+	 */
+	public List<Job> getJobsForUser(int page, int pageSize, String order, String user) {
+		DBCursor<Job> cursor = getJobCollection().find(DBQuery.is("submitterUserName", user));
+		return getPaginatedResults(cursor, page, pageSize, user);
+	}
+
+	/**
+	 * Gets a list of Jobs from the database containing the status
+	 * 
+	 * @param page
+	 *            the page number
+	 * @param pageSize
+	 *            the number of results per page
+	 * @param order
+	 *            "ascending" or "descending"
+	 * @param status
+	 *            The status of the Job
+	 * @return The list of jobs
+	 */
+	public List<Job> getJobsForStatus(int page, int pageSize, String order, String status) {
+		DBCursor<Job> cursor = getJobCollection().find(DBQuery.is("status", status));
+		return getPaginatedResults(cursor, page, pageSize, order);
+	}
+
+	/**
+	 * Adds pagination to a DB Cursor set.
+	 * 
+	 * @param page
+	 *            The page number to start
+	 * @param pageSize
+	 *            Results per page
+	 * @param order
+	 *            "ascending" or "descending"
+	 * @return
+	 */
+	private List<Job> getPaginatedResults(DBCursor<Job> cursor, int page, int pageSize, String order) {
+		// If sorting is enabled, then sort the response.
+		if ((order != null) && (order.isEmpty() == false)) {
+			if (order.equalsIgnoreCase("ascending")) {
+				cursor = cursor.sort(DBSort.asc("submitted"));
+			} else if (order.equalsIgnoreCase("descending")) {
+				cursor = cursor.sort(DBSort.desc("submitted"));
+			}
+		}
+		return cursor.skip(page * pageSize).limit(pageSize).toArray();
+	}
+
+	/**
+	 * Updates the status of a Job.
+	 * 
+	 * @param jobId
+	 *            The Job ID
+	 * @param status
+	 *            The Status
+	 */
+	public void updateJobStatus(String jobId, String status) {
+		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("status", status));
+	}
+
+	/**
+	 * Updates the Progress of a Job
+	 * 
+	 * @param jobId
+	 *            The Job ID to update
+	 * @param progress
+	 *            The progres to set
+	 */
+	public void updateJobProgress(String jobId, JobProgress progress) {
+		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("progress", progress));
+	}
+
+	/**
+	 * Deletes a Job entry.
+	 * 
+	 * @param jobId
+	 *            The ID of the job to delete
+	 */
+	public void removeJob(String jobId) {
+		getJobCollection().remove(DBQuery.is("jobId", jobId));
+	}
+
+	/**
+	 * Adds a Job
+	 * 
+	 * @param job
+	 *            The Job
+	 */
+	public void addJob(Job job) {
+		getJobCollection().insert(job);
+	}
+
 }

@@ -71,7 +71,7 @@ public class CreateJobHandler {
 	 *            The job to add.
 	 */
 	@Deprecated
-	public void process(Job job) {
+	public void process(Job job) throws Exception {
 		accessor.getJobCollection().insert(job);
 		logger.log(
 				String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType().getType()),
