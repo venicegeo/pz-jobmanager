@@ -97,7 +97,7 @@ public class RequestJobHandler {
 			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getType()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Relaying Request-Job Topic %s with key", consumerRecord.topic(),
+			logger.log(String.format("Error Relaying Request-Job Topic %s with key %s", consumerRecord.topic(),
 					consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
