@@ -16,6 +16,11 @@
 package jobmanager.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyLong;
+
+import java.util.Map;
+
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.JobMessager;
 import jobmanager.messaging.handler.AbortJobHandler;
@@ -24,7 +29,9 @@ import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
 
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -59,6 +66,8 @@ public class MessagerTests {
 	private RepeatJobHandler repeatJobHandler;
 	@Mock
 	private RequestJobHandler requestJobHandler;
+	@Mock
+	private Consumer<String, String> consumer;
 
 	@InjectMocks
 	private JobMessager jobMessager;
@@ -76,6 +85,9 @@ public class MessagerTests {
 		ReflectionTestUtils.setField(jobMessager, "UPDATE_JOB_TOPIC_NAME", "Update-Job");
 		ReflectionTestUtils.setField(jobMessager, "REQUEST_JOB_TOPIC_NAME", "Request-Job");
 		ReflectionTestUtils.setField(jobMessager, "REPEAT_JOB_TOPIC_NAME", "repeat");
+		ReflectionTestUtils.setField(jobMessager, "KAFKA_ADDRESS", "localhost:9092");
+		ReflectionTestUtils.setField(jobMessager, "SPACE", "unit-test");
+		ReflectionTestUtils.setField(jobMessager, "KAFKA_GROUP", "job-unit-test");
 	}
 
 	/**
@@ -105,6 +117,22 @@ public class MessagerTests {
 
 		Mockito.doNothing().when(repeatJobHandler).process(any(ConsumerRecord.class));
 		jobMessager.processMessage(repeat);
+	}
 
+	/**
+	 * Test initialization and listening loop
+	 */
+	@Test
+	public void testInitListening() throws Exception {
+		// Mock
+		Mockito.doNothing().when(consumer).subscribe(anyList());
+		ConsumerRecords<String, String> consumerRecords = new ConsumerRecords<String, String>(null);
+		Mockito.when(consumer.poll(anyLong())).thenReturn(consumerRecords);
+
+		// Test
+		jobMessager.initialize();
+
+		// Stop the listening Thread
+		jobMessager.stopPolling();
 	}
 }

@@ -155,6 +155,13 @@ public class JobMessager {
 	}
 
 	/**
+	 * Stops polling.
+	 */
+	public void stopPolling() {
+		this.closed.set(true);
+	}
+
+	/**
 	 * Processes an incoming Kafka Message. This will pass it off to the
 	 * appropriate handler that will make the necessary changes to the Jobs
 	 * Table.
