@@ -72,7 +72,28 @@ public class RequestJobHandler {
 			// Deserialize the message
 			ObjectMapper mapper = new ObjectMapper();
 			PiazzaJobRequest jobRequest = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
-			Job job = new Job(jobRequest, consumerRecord.key());
+			String jobId = consumerRecord.key();
+			process(jobRequest, jobId);
+		} catch (Exception exception) {
+			logger.log(String.format("Error Processing Request-Job Topic %s with key %s", consumerRecord.topic(),
+					consumerRecord.key()), PiazzaLogger.ERROR);
+			exception.printStackTrace();
+		}
+	}
+
+	/**
+	 * Processes a new Piazza Job Request. This will add the Job metadata into
+	 * the Jobs table, and then fire the Kafka event to the worker components to
+	 * process the Job. This was previously handled by the Dispatcher.
+	 * 
+	 * @param jobRequest
+	 *            The Job Request
+	 * @param jobId
+	 *            the Job ID
+	 */
+	public void process(PiazzaJobRequest jobRequest, String jobId) {
+		try {
+			Job job = new Job(jobRequest, jobId);
 			// If the job was submitted internally, the submitter
 			// wouldn't give it an ID. Assign a random ID here. (If
 			// submitted via the Gateway, the Gateway will assign
@@ -97,8 +118,7 @@ public class RequestJobHandler {
 			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getType()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Relaying Request-Job Topic %s with key %s", consumerRecord.topic(),
-					consumerRecord.key()), PiazzaLogger.ERROR);
+			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}
