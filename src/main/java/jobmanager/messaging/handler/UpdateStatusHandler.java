@@ -17,12 +17,12 @@ package jobmanager.messaging.handler;
 
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
+import model.job.result.ResultType;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.mongojack.DBQuery;
-import org.mongojack.DBUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -42,7 +42,8 @@ public class UpdateStatusHandler {
 	@Autowired
 	private MongoAccessor accessor;
 
-	public synchronized void process(ConsumerRecord<String, String> consumerRecord) {
+	@Async
+	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Changing the Status in the Job Table
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -61,41 +62,8 @@ public class UpdateStatusHandler {
 
 			// Update the Result, if specified
 			if (statusUpdate.getResult() != null) {
-				// Get the Job to apply the Result to
-				Job job = accessor.getJobById(consumerRecord.key());
 				// Update the Job Result
-				job.result = statusUpdate.getResult();
-
-				/**
-				 * It is important to note that we are not doing an update of
-				 * the Mongo Resource here, as one would expect. This is due to
-				 * a bug in MongoJack, documented here:
-				 * https://github.com/mongojack/mongojack/issues/101; that
-				 * explains how updating of MongoJack collections with
-				 * polymorphic objects currently only serializes the fields
-				 * found in the parent class or interface, and all child fields
-				 * are ignored.
-				 * 
-				 * This is important for us because the Results of a Job are
-				 * polymorphic (specifically, the ResultType interface) and thus
-				 * are not getting properly serialized as a result of this bug.
-				 * This bug exists in all versions of MongoJack and is still
-				 * OPEN in GitHub issues.
-				 * 
-				 * Due to this issue, we are tagging this method as
-				 * synchronized, and updating the Job properties in a Job
-				 * object, and then deleting that object from the database and
-				 * immediately committing the new Job with the updates. The
-				 * above-mentioned bug only affects updates, so the work-around
-				 * here is avoiding updates by creating a new object in the
-				 * database. This is functionally acceptable because we make no
-				 * use of MongoDB's primary key - our key is based on the JobID
-				 * property, which is maintained throughout the transaction.
-				 */
-				// Delete the existing entry for the Job
-				accessor.removeJob(consumerRecord.key());
-				// Re-add the Job Entry
-				accessor.addJob(job);
+				updateResult(consumerRecord.key(), statusUpdate.getResult());
 			}
 			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s",
 					consumerRecord.key(), statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);
@@ -103,5 +71,40 @@ public class UpdateStatusHandler {
 			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
+	}
+
+	/**
+	 * It is important to note that we are not doing an update of the Mongo
+	 * Resource here, as one would expect. This is due to a bug in MongoJack,
+	 * documented here: https://github.com/mongojack/mongojack/issues/101; that
+	 * explains how updating of MongoJack collections with polymorphic objects
+	 * currently only serializes the fields found in the parent class or
+	 * interface, and all child fields are ignored.
+	 * 
+	 * This is important for us because the Results of a Job are polymorphic
+	 * (specifically, the ResultType interface) and thus are not getting
+	 * properly serialized as a result of this bug. This bug exists in all
+	 * versions of MongoJack and is still OPEN in GitHub issues.
+	 * 
+	 * Due to this issue, we are updating the Job properties in a Job object,
+	 * and then deleting that object from the database and immediately
+	 * committing the new Job with the updates. The above-mentioned bug only
+	 * affects updates, so the work-around here is avoiding updates by creating
+	 * a new object in the database. This is functionally acceptable because we
+	 * make no use of MongoDB's primary key - our key is based on the JobID
+	 * property, which is maintained throughout the transaction.
+	 * 
+	 * @param job
+	 *            The Job
+	 * @param result
+	 *            The Result
+	 */
+	private synchronized void updateResult(String jobId, ResultType result) {
+		Job job = accessor.getJobById(jobId);
+		job.result = result;
+		// Delete the existing entry for the Job
+		accessor.removeJob(job.getJobId());
+		// Re-add the Job Entry
+		accessor.addJob(job);
 	}
 }

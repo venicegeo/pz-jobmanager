@@ -20,6 +20,7 @@ import model.job.Job;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -44,6 +45,7 @@ public class CreateJobHandler {
 	private MongoAccessor accessor;
 
 	@Deprecated
+	@Async
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Inserting Job Information into the Job Table
 		try {
@@ -71,6 +73,7 @@ public class CreateJobHandler {
 	 *            The job to add.
 	 */
 	@Deprecated
+	@Async
 	public void process(Job job) throws Exception {
 		accessor.getJobCollection().insert(job);
 		logger.log(

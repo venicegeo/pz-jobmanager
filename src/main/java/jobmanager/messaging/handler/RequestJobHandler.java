@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -67,6 +68,7 @@ public class RequestJobHandler {
 	 * @param consumerRecord
 	 *            The Job request message.
 	 */
+	@Async
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		try {
 			// Deserialize the message
@@ -91,6 +93,7 @@ public class RequestJobHandler {
 	 * @param jobId
 	 *            the Job ID
 	 */
+	@Async
 	public void process(PiazzaJobRequest jobRequest, String jobId) {
 		try {
 			Job job = new Job(jobRequest, jobId);

@@ -22,9 +22,8 @@ import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.mongojack.DBQuery;
-import org.mongojack.DBUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -46,6 +45,7 @@ public class AbortJobHandler {
 	private MongoAccessor accessor;
 
 	@Deprecated
+	@Async
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Changing the Status in the Job Table to Aborted
 		try {
@@ -66,6 +66,7 @@ public class AbortJobHandler {
 	 * @param request
 	 *            Job request.
 	 */
+	@Async
 	public void process(PiazzaJobRequest request) throws Exception {
 		AbortJob abortJob = (AbortJob) request.jobType;
 		Job jobToCancel = accessor.getJobById(abortJob.getJobId());

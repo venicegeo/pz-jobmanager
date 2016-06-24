@@ -37,6 +37,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -169,6 +170,7 @@ public class JobMessager {
 	 * @param consumerRecord
 	 *            The message to process.
 	 */
+	@Async
 	public void processMessage(ConsumerRecord<String, String> consumerRecord) throws Exception {
 		// Logging
 		logger.log(
