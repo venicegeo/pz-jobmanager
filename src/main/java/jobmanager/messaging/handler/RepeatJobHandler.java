@@ -29,6 +29,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
@@ -67,6 +68,7 @@ public class RepeatJobHandler {
 	}
 
 	@Deprecated
+	@Async
 	public void process(ConsumerRecord<String, String> consumerRecord) throws Exception {
 		try {
 			// Flag the Status of this Job to indicate we are handling it.
@@ -132,6 +134,7 @@ public class RepeatJobHandler {
 	 *            The request, detailing the user and the job to be repeated.
 	 * @return The ID of the newly created Job.
 	 */
+	@Async
 	public String process(PiazzaJobRequest request) throws Exception {
 		RepeatJob repeatJob = (RepeatJob) request.jobType;
 		String repeatJobId = repeatJob.getJobId();

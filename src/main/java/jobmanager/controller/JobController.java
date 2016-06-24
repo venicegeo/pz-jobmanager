@@ -27,6 +27,7 @@ import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.CreateJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
 import messaging.job.KafkaClientFactory;
 import model.job.Job;
 import model.job.type.AbortJob;
@@ -38,9 +39,6 @@ import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.producer.Producer;
-import org.mongojack.DBCursor;
-import org.mongojack.DBQuery;
-import org.mongojack.DBSort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -72,6 +70,8 @@ public class JobController {
 	private AbortJobHandler abortJobHandler;
 	@Autowired
 	private RepeatJobHandler repeatJobHandler;
+	@Autowired
+	private RequestJobHandler requestJobHandler;
 	@Value("${SPACE}")
 	private String SPACE;
 
@@ -160,6 +160,38 @@ public class JobController {
 					exception.getMessage());
 			logger.log(error, PiazzaLogger.ERROR);
 			return new ErrorResponse(job.getJobId(), error, "Job Manager");
+		}
+	}
+
+	/**
+	 * Sends a new Piazza Job Request to the Job Manager. This will add a new
+	 * entry in the Jobs table for the request, and will also proxy off the
+	 * Kafka message to the worker components.
+	 * 
+	 * @param request
+	 *            The job request
+	 * @param jobId
+	 *            The ID of the job to create. Optional. If specified, this will
+	 *            be used for the Job ID. If not specified, then one will be
+	 *            randomly generated.
+	 * @return The Response, containing the Job ID, or an Error
+	 */
+	@RequestMapping(value = "/requestJob", method = RequestMethod.POST)
+	public PiazzaResponse requestJob(@RequestBody PiazzaJobRequest request,
+			@RequestParam(value = "jobId", required = false) String jobId) {
+		try {
+			// Generate a Job ID if needed
+			if (jobId.isEmpty()) {
+				jobId = uuidFactory.getUUID();
+			}
+			// Create the Job and send off the Job Kafka message
+			requestJobHandler.process(request, jobId);
+			// Return to the user the Job ID.
+			return new PiazzaResponse(jobId);
+		} catch (Exception exception) {
+			String error = String.format("Error Requesting Job: %s", exception.getMessage());
+			logger.log(error, PiazzaLogger.ERROR);
+			return new ErrorResponse(null, error, "Job Manager");
 		}
 	}
 
