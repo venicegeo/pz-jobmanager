@@ -39,6 +39,8 @@ import model.job.type.IngestJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
+import model.response.JobErrorResponse;
+import model.response.JobResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
@@ -112,7 +114,7 @@ public class JobControllerTests {
 	public void testStatus() {
 		// Test error handling on Null Job ID
 		PiazzaResponse response = jobController.getJobStatus(null);
-		assertTrue(response instanceof ErrorResponse);
+		assertTrue(response instanceof JobErrorResponse);
 
 		// When we query the Status of the Mock Job's ID, return the Mock Job
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(mockJob);
@@ -129,7 +131,7 @@ public class JobControllerTests {
 		// Test Job Not Exists
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);
 		response = jobController.getJobStatus(mockJob.jobId);
-		assertTrue(response instanceof ErrorResponse);
+		assertTrue(response instanceof JobErrorResponse);
 	}
 
 	/**
@@ -149,8 +151,8 @@ public class JobControllerTests {
 		// Test Exception
 		Mockito.doThrow(new Exception("Couldn't Create")).when(createJobHandler).process(any(Job.class));
 		response = jobController.createJob(mockJob);
-		assertTrue(response instanceof ErrorResponse);
-		assertTrue(((ErrorResponse) response).message.contains("Couldn't Create"));
+		assertTrue(response instanceof JobErrorResponse);
+		assertTrue(((JobErrorResponse) response).message.contains("Couldn't Create"));
 	}
 
 	/**
@@ -190,8 +192,8 @@ public class JobControllerTests {
 		PiazzaResponse response = jobController.repeatJob(mockRequest);
 
 		// Verify
-		assertTrue(response instanceof PiazzaResponse);
-		assertTrue(response.jobId.equals("123456"));
+		assertTrue(response instanceof JobResponse);
+		assertTrue(((JobResponse)response).jobId.equals("123456"));
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));

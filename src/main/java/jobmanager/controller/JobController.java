@@ -33,6 +33,8 @@ import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
+import model.response.JobErrorResponse;
+import model.response.JobResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
@@ -126,14 +128,14 @@ public class JobController {
 			// If no Job was found.
 			if (job == null) {
 				logger.log(String.format("Job not found for requested ID %s", jobId), PiazzaLogger.WARNING);
-				return new ErrorResponse(jobId, "Job Not Found.", "Job Manager");
+				return new JobErrorResponse(jobId, "Job Not Found.", "Job Manager");
 			}
 			// Return Job Status
 			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
 			return new JobStatusResponse(job);
 		} catch (Exception exception) {
 			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
-			return new ErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
+			return new JobErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 
@@ -159,7 +161,7 @@ public class JobController {
 			String error = String.format("Error committing Job %s to the database: %s", job.getJobId(),
 					exception.getMessage());
 			logger.log(error, PiazzaLogger.ERROR);
-			return new ErrorResponse(job.getJobId(), error, "Job Manager");
+			return new JobErrorResponse(job.getJobId(), error, "Job Manager");
 		}
 	}
 
@@ -184,7 +186,7 @@ public class JobController {
 			return null;
 		} catch (Exception exception) {
 			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ErrorResponse(null, "Error Cancelling Job: " + exception.getMessage(), "Job Manager");
+			return new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 
@@ -206,10 +208,10 @@ public class JobController {
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
 					newJobId, ((RepeatJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
 			// Return the Job ID
-			return new PiazzaResponse(newJobId);
+			return new JobResponse(newJobId);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ErrorResponse(null, "Error Repeating Job: " + exception.getMessage(), "Job Manager");
+			return new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager");
 		}
 	}
 
