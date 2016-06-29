@@ -189,11 +189,11 @@ public class JobController {
 			// Create the Job and send off the Job Kafka message
 			requestJobHandler.process(request, jobId);
 			// Return to the user the Job ID.
-			return new PiazzaResponse(jobId);
+			return new JobResponse(jobId);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
 			logger.log(error, PiazzaLogger.ERROR);
-			return new ErrorResponse(null, error, "Job Manager");
+			return new ErrorResponse(error, "Job Manager");
 		}
 	}
 
