@@ -35,6 +35,7 @@ import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
 import model.response.JobErrorResponse;
+import model.response.JobListResponse;
 import model.response.JobResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
@@ -261,10 +262,19 @@ public class JobController {
 	 * @return The List of all Jobs in the system.
 	 */
 	@RequestMapping(value = "/job", method = RequestMethod.GET)
-	public List<Job> getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
-			@RequestParam(value = "per_page", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@RequestParam(value = "order", required = false) String order) {
-		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), order);
+	public JobListResponse getJobs(
+			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
+			@RequestParam(value = "perPage", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
+			@RequestParam(value = "order", required = false, defaultValue = "asc") String order,
+			@RequestParam(value = "sortBy", required = false, defaultValue = "submitted") String sortBy,
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "userName", required = false) String userName) {
+		// Don't allow for invalid orders
+		if (!(order.equalsIgnoreCase("asc")) && !(order.equalsIgnoreCase("desc"))) {
+			order = "asc";
+		}
+		// Get and return
+		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), order, sortBy, status, userName);
 	}
 
 	/**
@@ -315,48 +325,6 @@ public class JobController {
 	@RequestMapping(value = "/job/status/{status}/count", method = RequestMethod.GET)
 	public int getStatusCount(@PathVariable(value = "status") String status) {
 		return accessor.getJobStatusCount(status);
-	}
-
-	/**
-	 * Gets all Jobs, filtered by their Status. This follows the same pagination
-	 * rules as the getJobs() request.
-	 * 
-	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration
-	 * application for reporting the status of this Job Manager component. It is
-	 * not used in normal function of the Job Manager.
-	 * 
-	 * @param page
-	 *            The start page
-	 * @param pageSize
-	 *            The number of results per page
-	 * @return The list of all Jobs that match the specified Status
-	 */
-	@RequestMapping(value = "/job/status/{status}", method = RequestMethod.GET)
-	public List<Job> getJobsByStatus(
-			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
-			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@PathVariable(value = "status") String status, @RequestParam(value = "order", required = false) String order) {
-		return accessor.getJobsForStatus(Integer.parseInt(page), Integer.parseInt(pageSize), order, status);
-	}
-
-	/**
-	 * Gets the list of all Jobs for a certain user ID.
-	 * 
-	 * @param page
-	 *            The start page
-	 * @param pageSize
-	 *            The number of results per page
-	 * @param userName
-	 *            The userName of the user to query Jobs for.
-	 * @return
-	 */
-	@RequestMapping(value = "/job/userName/{userName}", method = RequestMethod.GET)
-	public List<Job> getJobsByUserName(
-			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
-			@RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
-			@PathVariable(value = "userName") String userName,
-			@RequestParam(value = "order", required = false) String order) {
-		return accessor.getJobsForUser(Integer.parseInt(page), Integer.parseInt(pageSize), order, userName);
 	}
 
 	/**
