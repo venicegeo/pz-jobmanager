@@ -3,7 +3,6 @@ package jobmanager.messaging.handler;
 import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
-import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -22,10 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Handles the Kafka topic for the requesting of a Job on the "Request-Job"
  * topic. This will relay the "Create-Job" job topic to the appropriate worker
  * components, while additionally adding in the Job metadata to the Jobs table.
- * 
- * The "Request-Job" topic will eventually deprecate the need for the
- * "Create-Job" topic; once the old Legacy API is phased out and the Dispatcher
- * is able to be dropped completely.
  * 
  * @author Patrick.Doody
  *
@@ -62,8 +57,7 @@ public class RequestJobHandler {
 	/**
 	 * Processes a message on the "Request-Job" topic. This will add the Job
 	 * metadata into the Jobs table, and then fire the Kafka event to the worker
-	 * components to process the Job. This was previously handled by the
-	 * Dispatcher.
+	 * components to process the Job. 
 	 * 
 	 * @param consumerRecord
 	 *            The Job request message.
@@ -86,7 +80,7 @@ public class RequestJobHandler {
 	/**
 	 * Processes a new Piazza Job Request. This will add the Job metadata into
 	 * the Jobs table, and then fire the Kafka event to the worker components to
-	 * process the Job. This was previously handled by the Dispatcher.
+	 * process the Job. 
 	 * 
 	 * @param jobRequest
 	 *            The Job Request
@@ -104,6 +98,7 @@ public class RequestJobHandler {
 			if (job.getJobId().isEmpty()) {
 				job.setJobId(uuidFactory.getUUID());
 			}
+
 			// The Legacy API needs the Dispatcher to handle the
 			// AbortJob type. When the Legacy API becomes
 			// deprecated, then this AbortJob handler will be
