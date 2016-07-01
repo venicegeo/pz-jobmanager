@@ -21,14 +21,11 @@ import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Handles the request for Aborting a Job by updating the Job table with the new
@@ -43,22 +40,6 @@ public class AbortJobHandler {
 	private PiazzaLogger logger;
 	@Autowired
 	private MongoAccessor accessor;
-
-	@Deprecated
-	@Async
-	public void process(ConsumerRecord<String, String> consumerRecord) {
-		// Changing the Status in the Job Table to Aborted
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			PiazzaJobRequest job = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
-			process(job);
-		} catch (Exception exception) {
-			logger.log(
-					String.format("Error setting Aborted status for Job %s: %s", consumerRecord.key(),
-							exception.getMessage()), PiazzaLogger.ERROR);
-			exception.printStackTrace();
-		}
-	}
 
 	/**
 	 * Processes a Job request to cancel a Piazza job.

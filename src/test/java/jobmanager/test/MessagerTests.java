@@ -18,9 +18,6 @@ package jobmanager.test;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
-
-import java.util.Map;
-
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.JobMessager;
 import jobmanager.messaging.handler.AbortJobHandler;
@@ -80,11 +77,8 @@ public class MessagerTests {
 		MockitoAnnotations.initMocks(this);
 
 		// Mock the values for the Topic names
-		ReflectionTestUtils.setField(jobMessager, "CREATE_JOB_TOPIC_NAME", "Create-Job");
-		ReflectionTestUtils.setField(jobMessager, "ABORT_JOB_TOPIC_NAME", "Abort-Job");
 		ReflectionTestUtils.setField(jobMessager, "UPDATE_JOB_TOPIC_NAME", "Update-Job");
 		ReflectionTestUtils.setField(jobMessager, "REQUEST_JOB_TOPIC_NAME", "Request-Job");
-		ReflectionTestUtils.setField(jobMessager, "REPEAT_JOB_TOPIC_NAME", "repeat");
 		ReflectionTestUtils.setField(jobMessager, "KAFKA_ADDRESS", "localhost:9092");
 		ReflectionTestUtils.setField(jobMessager, "SPACE", "unit-test");
 		ReflectionTestUtils.setField(jobMessager, "KAFKA_GROUP", "job-unit-test");
@@ -96,27 +90,15 @@ public class MessagerTests {
 	@Test
 	public void testProcessing() throws Exception {
 		// Create Kafka messages to pass to the Messager
-		ConsumerRecord<String, String> create = new ConsumerRecord<String, String>("Create-Job", 0, 0, null, null);
-		ConsumerRecord<String, String> abort = new ConsumerRecord<String, String>("Abort-Job", 0, 0, null, null);
 		ConsumerRecord<String, String> update = new ConsumerRecord<String, String>("Update-Job", 0, 0, null, null);
 		ConsumerRecord<String, String> request = new ConsumerRecord<String, String>("Request-Job", 0, 0, null, null);
-		ConsumerRecord<String, String> repeat = new ConsumerRecord<String, String>("repeat", 0, 0, null, null);
 
 		// Verify the Messages are appropriately handled
-		Mockito.doNothing().when(createJobHandler).process(any(ConsumerRecord.class));
-		jobMessager.processMessage(create);
-
-		Mockito.doNothing().when(abortJobHandler).process(any(ConsumerRecord.class));
-		jobMessager.processMessage(abort);
-
 		Mockito.doNothing().when(updateStatusHandler).process(any(ConsumerRecord.class));
 		jobMessager.processMessage(update);
 
 		Mockito.doNothing().when(requestJobHandler).process(any(ConsumerRecord.class));
 		jobMessager.processMessage(request);
-
-		Mockito.doNothing().when(repeatJobHandler).process(any(ConsumerRecord.class));
-		jobMessager.processMessage(repeat);
 	}
 
 	/**

@@ -18,14 +18,11 @@ package jobmanager.messaging.handler;
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import util.PiazzaLogger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Creates corresponding entries in the Jobs table for the Kafka Message
@@ -44,22 +41,6 @@ public class CreateJobHandler {
 	@Autowired
 	private MongoAccessor accessor;
 
-	@Deprecated
-	@Async
-	public void process(ConsumerRecord<String, String> consumerRecord) {
-		// Inserting Job Information into the Job Table
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			Job job = mapper.readValue(consumerRecord.value(), Job.class);
-			process(job);
-		} catch (Exception exception) {
-			logger.log(
-					String.format("Error Adding Job %s to Job Table: %s", consumerRecord.key(), exception.getMessage()),
-					PiazzaLogger.ERROR);
-			exception.printStackTrace();
-		}
-	}
-
 	/**
 	 * Adds Job information to the Job table.
 	 * 
@@ -72,7 +53,6 @@ public class CreateJobHandler {
 	 * @param job
 	 *            The job to add.
 	 */
-	@Deprecated
 	@Async
 	public void process(Job job) throws Exception {
 		accessor.getJobCollection().insert(job);

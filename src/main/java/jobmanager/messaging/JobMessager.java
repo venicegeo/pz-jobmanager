@@ -76,10 +76,7 @@ public class JobMessager {
 	private String SPACE;
 	@Value("#{'${kafka.group}' + '-' + '${SPACE}'}")
 	private String KAFKA_GROUP;
-	private String CREATE_JOB_TOPIC_NAME;
-	private String ABORT_JOB_TOPIC_NAME;
 	private String UPDATE_JOB_TOPIC_NAME;
-	private String REPEAT_JOB_TOPIC_NAME;
 	private String REQUEST_JOB_TOPIC_NAME;
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
@@ -94,10 +91,7 @@ public class JobMessager {
 	@PostConstruct
 	public void initialize() {
 		// Initialize the topics
-		CREATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.CREATE_JOB_TOPIC_NAME, SPACE);
-		ABORT_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.ABORT_JOB_TOPIC_NAME, SPACE);
 		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, SPACE);
-		REPEAT_JOB_TOPIC_NAME = String.format("%s-%s", "repeat", SPACE);
 		REQUEST_JOB_TOPIC_NAME = String.format("%s-%s", "Request-Job", SPACE);
 		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
 		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
@@ -122,8 +116,7 @@ public class JobMessager {
 	public void poll() {
 		try {
 			// Subscribe to all Topics of concern
-			List<String> topics = Arrays.asList(CREATE_JOB_TOPIC_NAME, ABORT_JOB_TOPIC_NAME, UPDATE_JOB_TOPIC_NAME,
-					REPEAT_JOB_TOPIC_NAME, REQUEST_JOB_TOPIC_NAME);
+			List<String> topics = Arrays.asList(UPDATE_JOB_TOPIC_NAME, REQUEST_JOB_TOPIC_NAME);
 			consumer.subscribe(topics);
 			// Log that we are listening
 			logger.log(
@@ -177,14 +170,8 @@ public class JobMessager {
 				String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
 				PiazzaLogger.INFO);
 		// Delegate by Topic
-		if (consumerRecord.topic().equalsIgnoreCase(CREATE_JOB_TOPIC_NAME)) {
-			createJobHandler.process(consumerRecord);
-		} else if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
+		if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
 			updateStatusHandler.process(consumerRecord);
-		} else if (consumerRecord.topic().equalsIgnoreCase(ABORT_JOB_TOPIC_NAME)) {
-			abortJobHandler.process(consumerRecord);
-		} else if (consumerRecord.topic().equalsIgnoreCase(REPEAT_JOB_TOPIC_NAME)) {
-			repeatJobHandler.process(consumerRecord);
 		} else if (consumerRecord.topic().equalsIgnoreCase(REQUEST_JOB_TOPIC_NAME)) {
 			requestJobHandler.process(consumerRecord);
 		} else {
