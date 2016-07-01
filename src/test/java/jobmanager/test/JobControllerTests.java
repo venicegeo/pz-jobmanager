@@ -127,7 +127,7 @@ public class JobControllerTests {
 		assertTrue(jobStatus.jobId.equals(mockJob.getJobId()));
 		assertTrue(jobStatus.progress.equals(mockJob.progress));
 		assertTrue(jobStatus.status.equals(StatusUpdate.STATUS_RUNNING));
-		assertTrue(jobStatus.jobType.equals(mockJob.getJobType().getType()));
+		assertTrue(jobStatus.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
 
 		// Test Job Not Exists
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);

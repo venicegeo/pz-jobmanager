@@ -118,7 +118,7 @@ public class RequestJobHandler {
 				// listen to.
 				producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
 			}
-			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getType()),
+			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
