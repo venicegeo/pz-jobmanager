@@ -3,7 +3,6 @@ package jobmanager.messaging.handler;
 import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
-import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -58,7 +57,7 @@ public class RequestJobHandler {
 	/**
 	 * Processes a message on the "Request-Job" topic. This will add the Job
 	 * metadata into the Jobs table, and then fire the Kafka event to the worker
-	 * components to process the Job. 
+	 * components to process the Job.
 	 * 
 	 * @param consumerRecord
 	 *            The Job request message.
@@ -81,7 +80,7 @@ public class RequestJobHandler {
 	/**
 	 * Processes a new Piazza Job Request. This will add the Job metadata into
 	 * the Jobs table, and then fire the Kafka event to the worker components to
-	 * process the Job. 
+	 * process the Job.
 	 * 
 	 * @param jobRequest
 	 *            The Job Request
@@ -99,23 +98,15 @@ public class RequestJobHandler {
 			if (job.getJobId().isEmpty()) {
 				job.setJobId(uuidFactory.getUUID());
 			}
-
-			// The Legacy API needs the Dispatcher to handle the
-			// AbortJob type. When the Legacy API becomes
-			// deprecated, then this AbortJob handler will be
-			// removed.
-			if (job.jobType instanceof AbortJob) {
-				abortJobHandler.process(jobRequest);
-			} else {
-				// Commit the Job metadata to the Jobs table
-				createJobHandler.process(job);
-				// Send the content of the actual Job under the
-				// topic name of the Job type for all workers to
-				// listen to.
-				producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
-			}
-			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
-					PiazzaLogger.INFO);
+			// Commit the Job metadata to the Jobs table
+			createJobHandler.process(job);
+			// Send the content of the actual Job under the
+			// topic name of the Job type for all workers to
+			// listen to.
+			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
+			logger.log(
+					String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass()
+							.getSimpleName()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
 			exception.printStackTrace();
