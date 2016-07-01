@@ -3,6 +3,7 @@ package jobmanager.messaging.handler;
 import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
+import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
