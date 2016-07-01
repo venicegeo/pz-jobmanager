@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -40,8 +39,10 @@ import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
 import model.response.JobErrorResponse;
+import model.response.JobListResponse;
 import model.response.JobResponse;
 import model.response.JobStatusResponse;
+import model.response.Pagination;
 import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
 
@@ -193,7 +194,7 @@ public class JobControllerTests {
 
 		// Verify
 		assertTrue(response instanceof JobResponse);
-		assertTrue(((JobResponse)response).jobId.equals("123456"));
+		assertTrue(((JobResponse) response).jobId.equals("123456"));
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));
@@ -207,15 +208,17 @@ public class JobControllerTests {
 	 */
 	@Test
 	public void testGetJobs() {
+		JobListResponse mockResponse = new JobListResponse(mockJobs, new Pagination());
 		// Mock
-		when(accessor.getJobs(anyInt(), anyInt(), anyString())).thenReturn(mockJobs);
+		when(accessor.getJobs(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(
+				mockResponse);
 
 		// Test
-		List<Job> jobs = jobController.getJobs("0", "10", "ascending");
+		JobListResponse jobs = jobController.getJobs("0", "10", "asc", "jobId", null, null);
 		// Verify
 		assertTrue(jobs != null);
-		assertTrue(jobs.size() == 1);
-		assertTrue(jobs.get(0).getJobId().equals(mockJob.getJobId()));
+		assertTrue(jobs.getData().size() == 1);
+		assertTrue(jobs.getData().get(0).getJobId().equals(mockJob.getJobId()));
 	}
 
 	/**
@@ -253,38 +256,5 @@ public class JobControllerTests {
 		assertTrue(entity.getStatusCode().equals(HttpStatus.OK));
 		Map<String, Object> stats = entity.getBody();
 		assertTrue(stats.keySet().size() >= 8);
-	}
-
-	/**
-	 * Tests /job/status/{status}
-	 */
-	@Test
-	public void testJobStatus() {
-		// Mock0
-		when(accessor.getJobsForStatus(anyInt(), anyInt(), eq("ascending"), eq(StatusUpdate.STATUS_RUNNING)))
-				.thenReturn(mockJobs);
-
-		// Test
-		List<Job> jobs = jobController.getJobsByStatus("0", "10", StatusUpdate.STATUS_RUNNING, "ascending");
-		// Verify
-		assertTrue(jobs != null);
-		assertTrue(jobs.size() == 1);
-		assertTrue(jobs.get(0).getJobId().equals(mockJob.getJobId()));
-	}
-
-	/**
-	 * Tests /job/userName/{userName}
-	 */
-	@Test
-	public void testJobUser() {
-		// Mock
-		when(accessor.getJobsForUser(anyInt(), anyInt(), eq("ascending"), eq("UNAUTHENTICATED"))).thenReturn(mockJobs);
-
-		// Test
-		List<Job> jobs = jobController.getJobsByUserName("0", "10", "UNAUTHENTICATED", "ascending");
-		// Verify
-		assertTrue(jobs != null);
-		assertTrue(jobs.size() == 1);
-		assertTrue(jobs.get(0).getJobId().equals(mockJob.getJobId()));
 	}
 }
