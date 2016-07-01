@@ -57,7 +57,7 @@ public class CreateJobHandler {
 	public void process(Job job) throws Exception {
 		accessor.getJobCollection().insert(job);
 		logger.log(
-				String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType().getType()),
+				String.format("Indexed Job %s with Type %s to Job Table.", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 				PiazzaLogger.INFO);
 	}
 }
