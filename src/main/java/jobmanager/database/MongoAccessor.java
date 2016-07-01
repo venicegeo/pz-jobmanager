@@ -22,9 +22,13 @@ import javax.annotation.PreDestroy;
 
 import model.job.Job;
 import model.job.JobProgress;
+import model.response.DataResourceListResponse;
+import model.response.JobListResponse;
+import model.response.Pagination;
 
 import org.mongojack.DBCursor;
 import org.mongojack.DBQuery;
+import org.mongojack.DBQuery.Query;
 import org.mongojack.DBSort;
 import org.mongojack.DBUpdate;
 import org.mongojack.JacksonDBCollection;
@@ -140,7 +144,7 @@ public class MongoAccessor {
 	 * 
 	 * @param page
 	 *            the page number
-	 * @param pageSize
+	 * @param perPage
 	 *            the number of results per page
 	 * @param order
 	 *            "ascending" or "descending"
@@ -150,69 +154,37 @@ public class MongoAccessor {
 	 *            The username who submitted the Job
 	 * @return The list of jobs
 	 */
-	public List<Job> getJobs(int page, int pageSize, String order) {
-		// Get all of the Jobs.
-		DBCursor<Job> cursor = getJobCollection().find();
-		return getPaginatedResults(cursor, page, pageSize, order);
-	}
-
-	/**
-	 * Gets a list of Jobs from the database for the user
-	 * 
-	 * @param page
-	 *            the page number
-	 * @param pageSize
-	 *            the number of results per page
-	 * @param order
-	 *            "ascending" or "descending"
-	 * @param userName
-	 *            The username who submitted the Job
-	 * @return The list of jobs
-	 */
-	public List<Job> getJobsForUser(int page, int pageSize, String order, String user) {
-		DBCursor<Job> cursor = getJobCollection().find(DBQuery.is("submitterUserName", user));
-		return getPaginatedResults(cursor, page, pageSize, user);
-	}
-
-	/**
-	 * Gets a list of Jobs from the database containing the status
-	 * 
-	 * @param page
-	 *            the page number
-	 * @param pageSize
-	 *            the number of results per page
-	 * @param order
-	 *            "ascending" or "descending"
-	 * @param status
-	 *            The status of the Job
-	 * @return The list of jobs
-	 */
-	public List<Job> getJobsForStatus(int page, int pageSize, String order, String status) {
-		DBCursor<Job> cursor = getJobCollection().find(DBQuery.is("status", status));
-		return getPaginatedResults(cursor, page, pageSize, order);
-	}
-
-	/**
-	 * Adds pagination to a DB Cursor set.
-	 * 
-	 * @param page
-	 *            The page number to start
-	 * @param pageSize
-	 *            Results per page
-	 * @param order
-	 *            "ascending" or "descending"
-	 * @return
-	 */
-	private List<Job> getPaginatedResults(DBCursor<Job> cursor, int page, int pageSize, String order) {
-		// If sorting is enabled, then sort the response.
-		if ((order != null) && (order.isEmpty() == false)) {
-			if (order.equalsIgnoreCase("ascending")) {
-				cursor = cursor.sort(DBSort.asc("submitted"));
-			} else if (order.equalsIgnoreCase("descending")) {
-				cursor = cursor.sort(DBSort.desc("submitted"));
-			}
+	public JobListResponse getJobs(int page, int perPage, String order, String sortBy, String status, String userName) {
+		// Construct the query based on the user parameters.
+		Query query = DBQuery.empty();
+		if ((userName != null) && (userName.isEmpty() == false)) {
+			query.and(DBQuery.is("submitterUserName", userName));
 		}
-		return cursor.skip(page * pageSize).limit(pageSize).toArray();
+		if ((status != null) && (status.isEmpty() == false)) {
+			query.and(DBQuery.is("status", status));
+		}
+
+		// Execute the query
+		DBCursor<Job> cursor = getJobCollection().find(query);
+
+		// Sort and order the Results
+		if (order.equalsIgnoreCase("asc")) {
+			cursor = cursor.sort(DBSort.asc(sortBy));
+		} else if (order.equalsIgnoreCase("desc")) {
+			cursor = cursor.sort(DBSort.desc(sortBy));
+		}
+
+		// Get the total count
+		Integer size = new Integer(cursor.size());
+
+		// Paginate the results
+		List<Job> jobs = cursor.skip(page * perPage).limit(perPage).toArray();
+
+		// Attach pagination information
+		Pagination pagination = new Pagination(size, page, perPage, sortBy, order);
+
+		// Create the Response and send back
+		return new JobListResponse(jobs, pagination);
 	}
 
 	/**
