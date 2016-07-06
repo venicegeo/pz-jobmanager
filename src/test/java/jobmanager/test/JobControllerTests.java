@@ -124,10 +124,10 @@ public class JobControllerTests {
 		response = jobController.getJobStatus(mockJob.jobId);
 		assertTrue(response instanceof JobStatusResponse);
 		JobStatusResponse jobStatus = (JobStatusResponse) response;
-		assertTrue(jobStatus.jobId.equals(mockJob.getJobId()));
-		assertTrue(jobStatus.progress.equals(mockJob.progress));
-		assertTrue(jobStatus.status.equals(StatusUpdate.STATUS_RUNNING));
-		assertTrue(jobStatus.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
+		assertTrue(jobStatus.data.jobId.equals(mockJob.getJobId()));
+		assertTrue(jobStatus.data.progress.equals(mockJob.progress));
+		assertTrue(jobStatus.data.status.equals(StatusUpdate.STATUS_RUNNING));
+		assertTrue(jobStatus.data.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
 
 		// Test Job Not Exists
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);
@@ -194,7 +194,7 @@ public class JobControllerTests {
 
 		// Verify
 		assertTrue(response instanceof JobResponse);
-		assertTrue(((JobResponse) response).jobId.equals("123456"));
+		assertTrue(((JobResponse) response).data.getJobId().equals("123456"));
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));
