@@ -55,7 +55,7 @@ public class AbortJobHandler {
 			throw new Exception(String.format("No job could be founding matching ID %s", abortJob.getJobId()));
 		}
 		// Ensure the user has permission to cancel the Job.
-		if ((jobToCancel.submitterUserName == null) || (!jobToCancel.submitterUserName.equals(request.userName))) {
+		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {
 			throw new Exception(
 					String.format("Could not Abort Job %s because it was not requested by the originating user.",
 							abortJob.getJobId()));

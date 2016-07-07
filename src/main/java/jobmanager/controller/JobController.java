@@ -220,7 +220,7 @@ public class JobController {
 			abortJobHandler.process(request);
 			// Log the successful Cancellation
 			logger.log(String.format("Successfully cancelled Job %s by User %s",
-					((AbortJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
+					((AbortJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 			// Return OK
 			return null;
 		} catch (Exception exception) {
@@ -245,7 +245,7 @@ public class JobController {
 			String newJobId = repeatJobHandler.process(request);
 			// Log the successful Repetition of the Job
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
-					newJobId, ((RepeatJob) request.jobType).getJobId(), request.userName), PiazzaLogger.INFO);
+					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 			// Return the Job ID
 			return new JobResponse(newJobId);
 		} catch (Exception exception) {
