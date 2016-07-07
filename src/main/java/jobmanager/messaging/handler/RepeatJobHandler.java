@@ -84,7 +84,7 @@ public class RepeatJobHandler {
 		// who requested the Job to be repeated. The Job Type will be the
 		// Type of the Job that is to be repeated.
 		PiazzaJobRequest newJobRequest = new PiazzaJobRequest();
-		newJobRequest.userName = job.submitterUserName;
+		newJobRequest.createdBy = job.createdBy;
 		newJobRequest.jobType = job.getJobType();
 
 		// Dispatch the Message to Repeat the selected Job. Create an ID so

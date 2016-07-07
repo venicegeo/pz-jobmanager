@@ -108,10 +108,10 @@ public class HandlerTests {
 		// Mock Requests
 		mockAbortRequest = new PiazzaJobRequest();
 		mockAbortRequest.jobType = new AbortJob("123456");
-		mockAbortRequest.userName = "A";
+		mockAbortRequest.createdBy = "A";
 
 		repeatJobRequest = new PiazzaJobRequest();
-		repeatJobRequest.userName = "A";
+		repeatJobRequest.createdBy = "A";
 		repeatJobRequest.jobType = new RepeatJob("123456");
 
 		// Mock the Kafka response that Producers will send. This will always
@@ -146,7 +146,7 @@ public class HandlerTests {
 	public void testAbortPermissionError() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.submitterUserName = "B";
+		mockCancelJob.createdBy = "B";
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 
 		// Test
@@ -160,7 +160,7 @@ public class HandlerTests {
 	public void testAbortCancelledJob() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.submitterUserName = "A";
+		mockCancelJob.createdBy = "A";
 		mockCancelJob.status = StatusUpdate.STATUS_CANCELLED;
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 
@@ -175,7 +175,7 @@ public class HandlerTests {
 	public void testAbortJob() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.submitterUserName = "A";
+		mockCancelJob.createdBy = "A";
 		mockCancelJob.status = StatusUpdate.STATUS_RUNNING;
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 		Mockito.doNothing().when(accessor).updateJobStatus(eq("123456"), eq(StatusUpdate.STATUS_CANCELLED));
