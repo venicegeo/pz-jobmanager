@@ -17,6 +17,7 @@ package jobmanager.test;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -162,6 +163,7 @@ public class JobControllerTests {
 	@Test
 	public void testAbortJob() throws Exception {
 		// Mock
+		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
 		Mockito.doNothing().when(abortJobHandler).process(any(PiazzaJobRequest.class));
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new AbortJob("123456");
@@ -174,7 +176,7 @@ public class JobControllerTests {
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Couldn't Abort")).when(abortJobHandler).process(any(PiazzaJobRequest.class));
-		response = jobController.abortJob(new PiazzaJobRequest());
+		response = jobController.abortJob(mockRequest);
 		assertTrue(response instanceof ErrorResponse);
 		assertTrue(((ErrorResponse) response).message.contains("Couldn't Abort"));
 	}
