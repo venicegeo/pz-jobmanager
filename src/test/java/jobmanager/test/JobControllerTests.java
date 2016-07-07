@@ -17,6 +17,7 @@ package jobmanager.test;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -124,10 +125,10 @@ public class JobControllerTests {
 		response = jobController.getJobStatus(mockJob.jobId);
 		assertTrue(response instanceof JobStatusResponse);
 		JobStatusResponse jobStatus = (JobStatusResponse) response;
-		assertTrue(jobStatus.jobId.equals(mockJob.getJobId()));
-		assertTrue(jobStatus.progress.equals(mockJob.progress));
-		assertTrue(jobStatus.status.equals(StatusUpdate.STATUS_RUNNING));
-		assertTrue(jobStatus.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
+		assertTrue(jobStatus.data.jobId.equals(mockJob.getJobId()));
+		assertTrue(jobStatus.data.progress.equals(mockJob.progress));
+		assertTrue(jobStatus.data.status.equals(StatusUpdate.STATUS_RUNNING));
+		assertTrue(jobStatus.data.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
 
 		// Test Job Not Exists
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);
@@ -162,6 +163,7 @@ public class JobControllerTests {
 	@Test
 	public void testAbortJob() throws Exception {
 		// Mock
+		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
 		Mockito.doNothing().when(abortJobHandler).process(any(PiazzaJobRequest.class));
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new AbortJob("123456");
@@ -174,7 +176,7 @@ public class JobControllerTests {
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Couldn't Abort")).when(abortJobHandler).process(any(PiazzaJobRequest.class));
-		response = jobController.abortJob(new PiazzaJobRequest());
+		response = jobController.abortJob(mockRequest);
 		assertTrue(response instanceof ErrorResponse);
 		assertTrue(((ErrorResponse) response).message.contains("Couldn't Abort"));
 	}
@@ -194,7 +196,7 @@ public class JobControllerTests {
 
 		// Verify
 		assertTrue(response instanceof JobResponse);
-		assertTrue(((JobResponse) response).jobId.equals("123456"));
+		assertTrue(((JobResponse) response).data.getJobId().equals("123456"));
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));

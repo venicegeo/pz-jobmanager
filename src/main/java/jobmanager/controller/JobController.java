@@ -210,6 +210,12 @@ public class JobController {
 	@RequestMapping(value = "/abort", method = RequestMethod.POST)
 	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
+			// Verify the Job exists
+			String jobId = ((AbortJob) request.jobType).getJobId();
+			Job jobToCancel = accessor.getJobById(jobId);
+			if (jobToCancel == null) {
+				throw new Exception("Job not found matching ID " + jobId);
+			}
 			// Abort the Job in the Jobs table.
 			abortJobHandler.process(request);
 			// Log the successful Cancellation
