@@ -25,7 +25,6 @@ import javax.annotation.PreDestroy;
 
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
-import jobmanager.messaging.handler.CreateJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
 import messaging.job.KafkaClientFactory;
@@ -34,11 +33,11 @@ import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
-import model.response.JobErrorResponse;
 import model.response.JobListResponse;
 import model.response.JobResponse;
 import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
+import model.response.SuccessResponse;
 import model.status.StatusUpdate;
 
 import org.apache.kafka.clients.producer.Producer;
@@ -67,8 +66,6 @@ public class JobController {
 	private UUIDFactory uuidFactory;
 	@Autowired
 	private MongoAccessor accessor;
-	@Autowired
-	private CreateJobHandler createJobHandler;
 	@Autowired
 	private AbortJobHandler abortJobHandler;
 	@Autowired
@@ -118,8 +115,8 @@ public class JobController {
 	 *         response object. If the job is ready, then this Response will
 	 *         contain an Object reference to the output produced by the Job.
 	 */
-	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET)
-	public PiazzaResponse getJobStatus(@PathVariable(value = "jobId") String jobId) {
+	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
 		try {
 			if (jobId.isEmpty()) {
 				throw new Exception("No Job ID specified.");
@@ -129,40 +126,14 @@ public class JobController {
 			// If no Job was found.
 			if (job == null) {
 				logger.log(String.format("Job not found for requested ID %s", jobId), PiazzaLogger.WARNING);
-				return new JobErrorResponse(jobId, "Job Not Found.", "Job Manager");
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);				
 			}
 			// Return Job Status
 			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
-			return new JobStatusResponse(job);
+			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
-			return new JobErrorResponse(jobId, "Error fetching Job: " + exception.getMessage(), "Job Manager");
-		}
-	}
-
-	/**
-	 * Acts like the "Create-Job" kafka topic handler. This will insert Job
-	 * information into the Jobs table and set the state to "Submitted."
-	 * 
-	 * <p>
-	 * This will be deprecated once the legacy API is removed; at which point
-	 * this endpoint can be deleted.
-	 * </p>
-	 * 
-	 * @param job
-	 *            The job information to add to the table.
-	 * @return OK if added. Error if not.
-	 */
-	@RequestMapping(value = "/createJob", method = RequestMethod.POST)
-	public PiazzaResponse createJob(@RequestBody Job job) {
-		try {
-			createJobHandler.process(job);
-			return null;
-		} catch (Exception exception) {
-			String error = String.format("Error committing Job %s to the database: %s", job.getJobId(),
-					exception.getMessage());
-			logger.log(error, PiazzaLogger.ERROR);
-			return new JobErrorResponse(job.getJobId(), error, "Job Manager");
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -179,8 +150,8 @@ public class JobController {
 	 *            randomly generated.
 	 * @return The Response, containing the Job ID, or an Error
 	 */
-	@RequestMapping(value = "/requestJob", method = RequestMethod.POST)
-	public PiazzaResponse requestJob(@RequestBody PiazzaJobRequest request,
+	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = "application/json")
+	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
 			@RequestParam(value = "jobId", required = false) String jobId) {
 		try {
 			// Generate a Job ID if needed
@@ -190,11 +161,11 @@ public class JobController {
 			// Create the Job and send off the Job Kafka message
 			requestJobHandler.process(request, jobId);
 			// Return to the user the Job ID.
-			return new JobResponse(jobId);
+			return new ResponseEntity<PiazzaResponse>(new JobResponse(jobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
 			logger.log(error, PiazzaLogger.ERROR);
-			return new ErrorResponse(error, "Job Manager");
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -207,25 +178,25 @@ public class JobController {
 	 * @return null response if successful. ErrorResponse containing appropriate
 	 *         error details on exception.
 	 */
-	@RequestMapping(value = "/abort", method = RequestMethod.POST)
-	public PiazzaResponse abortJob(@RequestBody PiazzaJobRequest request) {
+	@RequestMapping(value = "/abort", method = RequestMethod.POST, produces = "application/json")
+	public ResponseEntity<PiazzaResponse> abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Verify the Job exists
 			String jobId = ((AbortJob) request.jobType).getJobId();
 			Job jobToCancel = accessor.getJobById(jobId);
 			if (jobToCancel == null) {
-				throw new Exception("Job not found matching ID " + jobId);
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);
 			}
 			// Abort the Job in the Jobs table.
 			abortJobHandler.process(request);
 			// Log the successful Cancellation
 			logger.log(String.format("Successfully cancelled Job %s by User %s",
 					((AbortJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
-			// Return OK
-			return null;
+			return new ResponseEntity<PiazzaResponse>(new SuccessResponse("Job " + jobId
+					+ " was cancelled successfully", "Gateway"), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager");
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -238,19 +209,26 @@ public class JobController {
 	 * @return The response containing the Job ID if successful. Appropriate
 	 *         error details returned on exception.
 	 */
-	@RequestMapping(value = "/repeat", method = RequestMethod.POST)
-	public PiazzaResponse repeatJob(@RequestBody PiazzaJobRequest request) {
+	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = "application/json")
+	public ResponseEntity<PiazzaResponse> repeatJob(@RequestBody PiazzaJobRequest request) {
 		try {
+			// Verify the Job exists
+			String jobId = ((RepeatJob)request.jobType).jobId;
+			Job jobToRepeat = accessor.getJobById(jobId);
+			if (jobToRepeat == null) {
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);
+			}			
+			
 			// Repeat the Job
 			String newJobId = repeatJobHandler.process(request);
 			// Log the successful Repetition of the Job
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
 					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 			// Return the Job ID
-			return new JobResponse(newJobId);
+			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager");
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
