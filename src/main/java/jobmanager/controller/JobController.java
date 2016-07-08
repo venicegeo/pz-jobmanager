@@ -44,6 +44,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -115,7 +116,7 @@ public class JobController {
 	 *         response object. If the job is ready, then this Response will
 	 *         contain an Object reference to the output produced by the Job.
 	 */
-	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET, produces = "application/json")
+	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
 		try {
 			if (jobId.isEmpty()) {
@@ -150,7 +151,7 @@ public class JobController {
 	 *            randomly generated.
 	 * @return The Response, containing the Job ID, or an Error
 	 */
-	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
 			@RequestParam(value = "jobId", required = false) String jobId) {
 		try {
@@ -178,7 +179,7 @@ public class JobController {
 	 * @return null response if successful. ErrorResponse containing appropriate
 	 *         error details on exception.
 	 */
-	@RequestMapping(value = "/abort", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value = "/abort", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> abortJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Verify the Job exists
@@ -209,7 +210,7 @@ public class JobController {
 	 * @return The response containing the Job ID if successful. Appropriate
 	 *         error details returned on exception.
 	 */
-	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> repeatJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Verify the Job exists
