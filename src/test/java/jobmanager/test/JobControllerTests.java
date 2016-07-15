@@ -39,7 +39,6 @@ import model.job.type.IngestJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
-import model.response.JobErrorResponse;
 import model.response.JobListResponse;
 import model.response.JobResponse;
 import model.response.JobStatusResponse;
@@ -115,14 +114,14 @@ public class JobControllerTests {
 	@Test
 	public void testStatus() {
 		// Test error handling on Null Job ID
-		PiazzaResponse response = jobController.getJobStatus(null);
-		assertTrue(response instanceof JobErrorResponse);
+		PiazzaResponse response = jobController.getJobStatus(null).getBody();
+		assertTrue(response instanceof ErrorResponse);
 
 		// When we query the Status of the Mock Job's ID, return the Mock Job
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(mockJob);
 
 		// Query the Job
-		response = jobController.getJobStatus(mockJob.jobId);
+		response = jobController.getJobStatus(mockJob.jobId).getBody();
 		assertTrue(response instanceof JobStatusResponse);
 		JobStatusResponse jobStatus = (JobStatusResponse) response;
 		assertTrue(jobStatus.data.jobId.equals(mockJob.getJobId()));
@@ -132,29 +131,8 @@ public class JobControllerTests {
 
 		// Test Job Not Exists
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);
-		response = jobController.getJobStatus(mockJob.jobId);
-		assertTrue(response instanceof JobErrorResponse);
-	}
-
-	/**
-	 * Test /createJob
-	 */
-	@Test
-	public void testCreateJob() throws Exception {
-		// Mock
-		Mockito.doNothing().when(createJobHandler).process(any(Job.class));
-
-		// Test
-		PiazzaResponse response = jobController.createJob(mockJob);
-
-		// Verify
-		assertTrue(response == null);
-
-		// Test Exception
-		Mockito.doThrow(new Exception("Couldn't Create")).when(createJobHandler).process(any(Job.class));
-		response = jobController.createJob(mockJob);
-		assertTrue(response instanceof JobErrorResponse);
-		assertTrue(((JobErrorResponse) response).message.contains("Couldn't Create"));
+		response = jobController.getJobStatus(mockJob.jobId).getBody();
+		assertTrue(response instanceof ErrorResponse);
 	}
 
 	/**
@@ -169,16 +147,16 @@ public class JobControllerTests {
 		mockRequest.jobType = new AbortJob("123456");
 
 		// Test
-		PiazzaResponse response = jobController.abortJob(mockRequest);
+		ResponseEntity<PiazzaResponse> response = jobController.abortJob(mockRequest);
 
 		// Verify
-		assertTrue(response == null);
+		assertTrue(response.getStatusCode().compareTo(HttpStatus.OK) == 0);
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Couldn't Abort")).when(abortJobHandler).process(any(PiazzaJobRequest.class));
 		response = jobController.abortJob(mockRequest);
-		assertTrue(response instanceof ErrorResponse);
-		assertTrue(((ErrorResponse) response).message.contains("Couldn't Abort"));
+		assertTrue(response.getBody() instanceof ErrorResponse);
+		assertTrue(((ErrorResponse) response.getBody()).message.contains("Couldn't Abort"));
 	}
 
 	/**
@@ -187,12 +165,13 @@ public class JobControllerTests {
 	@Test
 	public void testRepeat() throws Exception {
 		// Mock
+		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
 		when(repeatJobHandler.process(any(PiazzaJobRequest.class))).thenReturn("123456");
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
 
 		// Test
-		PiazzaResponse response = jobController.repeatJob(mockRequest);
+		PiazzaResponse response = jobController.repeatJob(mockRequest).getBody();
 
 		// Verify
 		assertTrue(response instanceof JobResponse);
@@ -200,9 +179,8 @@ public class JobControllerTests {
 
 		// Test Exception
 		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));
-		response = jobController.repeatJob(new PiazzaJobRequest());
+		response = jobController.repeatJob(new PiazzaJobRequest()).getBody();
 		assertTrue(response instanceof ErrorResponse);
-		assertTrue(((ErrorResponse) response).message.contains("Can't Repeat"));
 	}
 
 	/**
