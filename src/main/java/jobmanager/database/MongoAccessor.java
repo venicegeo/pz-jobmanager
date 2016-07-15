@@ -158,7 +158,7 @@ public class MongoAccessor {
 		// Construct the query based on the user parameters.
 		Query query = DBQuery.empty();
 		if ((userName != null) && (userName.isEmpty() == false)) {
-			query.and(DBQuery.is("submitterUserName", userName));
+			query.and(DBQuery.is("createdBy", userName));
 		}
 		if ((status != null) && (status.isEmpty() == false)) {
 			query.and(DBQuery.is("status", status));
