@@ -15,21 +15,15 @@
  **/
 package jobmanager.messaging.handler;
 
-import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
-import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import util.PiazzaLogger;
-import util.UUIDFactory;
 
 /**
  * Handles the request for Repeating a Job in the Job Table.
@@ -38,12 +32,7 @@ import util.UUIDFactory;
  */
 @Component
 public class RepeatJobHandler {
-	@Autowired
-	private PiazzaLogger logger;
-	@Autowired
-	private MongoAccessor accessor;
-	@Autowired
-	private UUIDFactory uuidFactory;
+
 	@Value("${SPACE}")
 	private String SPACE;
 
@@ -66,20 +55,9 @@ public class RepeatJobHandler {
 	 * 
 	 * @param request
 	 *            The request, detailing the user and the job to be repeated.
-	 * @return The ID of the newly created Job.
 	 */
 	@Async
-	public String process(PiazzaJobRequest request) throws Exception {
-		RepeatJob repeatJob = (RepeatJob) request.jobType;
-		String repeatJobId = repeatJob.getJobId();
-
-		// Lookup the Jobs table for the requested Job to Repeat. Ensure it
-		// exists.
-		Job job = accessor.getJobById(repeatJobId);
-		if (job == null) {
-			throw new Exception(String.format("Job %s could not be found.", repeatJobId));
-		}
-
+	public void process(Job job, String newRepeatJobId) throws Exception {
 		// Create a new JobRequest object. The Submitter will be the user
 		// who requested the Job to be repeated. The Job Type will be the
 		// Type of the Job that is to be repeated.
@@ -89,12 +67,8 @@ public class RepeatJobHandler {
 
 		// Dispatch the Message to Repeat the selected Job. Create an ID so
 		// we can immediately attach a result to the RepeatJob request.
-		String newRepeatJobId = uuidFactory.getUUID();
-		ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(newJobRequest,
-				newRepeatJobId, SPACE);
-		producer.send(repeatJobMessage).get(); // Ensuring we get Exceptions
-												// immediately
-
-		return newRepeatJobId;
+		ProducerRecord<String, String> repeatJobMessage = 
+				JobMessageFactory.getRequestJobMessage(newJobRequest, newRepeatJobId, SPACE);
+		producer.send(repeatJobMessage).get();
 	}
 }

@@ -216,15 +216,19 @@ public class JobController {
 			// Verify the Job exists
 			String jobId = ((RepeatJob)request.jobType).jobId;
 			Job jobToRepeat = accessor.getJobById(jobId);
+
 			if (jobToRepeat == null) {
 				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);
 			}			
 			
-			// Repeat the Job
-			String newJobId = repeatJobHandler.process(request);
+			// Repeat the Job; ASYNC process
+			final String newJobId = uuidFactory.getUUID();
+			repeatJobHandler.process(jobToRepeat, newJobId);
+
 			// Log the successful Repetition of the Job
 			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
 					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
+
 			// Return the Job ID
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
