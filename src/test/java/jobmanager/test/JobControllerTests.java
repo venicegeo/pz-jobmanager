@@ -56,6 +56,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import util.PiazzaLogger;
+import util.UUIDFactory;
 
 /**
  * Tests the Job Controller REST Endpoint, which returns Job Status and other
@@ -67,6 +68,8 @@ import util.PiazzaLogger;
 public class JobControllerTests {
 	@Mock
 	private PiazzaLogger logger;
+	@Mock
+	private UUIDFactory uuidFactory;
 	@Mock
 	private MongoAccessor accessor;
 	@Mock
@@ -166,7 +169,9 @@ public class JobControllerTests {
 	public void testRepeat() throws Exception {
 		// Mock
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
-		when(repeatJobHandler.process(any(PiazzaJobRequest.class))).thenReturn("123456");
+		when(uuidFactory.getUUID()).thenReturn("123456");
+		Mockito.doNothing().when(repeatJobHandler).process(any(Job.class), any(String.class));
+		
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
 
@@ -178,7 +183,7 @@ public class JobControllerTests {
 		assertTrue(((JobResponse) response).data.getJobId().equals("123456"));
 
 		// Test Exception
-		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(PiazzaJobRequest.class));
+		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(Job.class), any(String.class));
 		response = jobController.repeatJob(new PiazzaJobRequest()).getBody();
 		assertTrue(response instanceof ErrorResponse);
 	}

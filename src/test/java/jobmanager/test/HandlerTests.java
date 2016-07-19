@@ -185,39 +185,6 @@ public class HandlerTests {
 	}
 
 	/**
-	 * Tests repeating a Job when no original Job is found
-	 * 
-	 * @throws Exception
-	 */
-	@Test(expected = Exception.class)
-	public void testRepeatNoJobFound() throws Exception {
-		// Mock
-		when(accessor.getJobById(eq("123456"))).thenReturn(null);
-
-		// Test
-		repeatJobHandler.process(repeatJobRequest);
-	}
-
-	/**
-	 * Test repeating a Job
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testRepeatJob() throws Exception {
-		// Mock
-		Job jobToRepeat = new Job();
-		jobToRepeat.setJobId("123456");
-		jobToRepeat.jobType = new AccessJob();
-		when(accessor.getJobById(eq("123456"))).thenReturn(jobToRepeat);
-		when(uuidFactory.getUUID()).thenReturn("654321");
-
-		// Test
-		String newJobId = repeatJobHandler.process(repeatJobRequest);
-		assertTrue(newJobId.equals("654321"));
-	}
-
-	/**
 	 * Tests the updating of a Status
 	 */
 	@Test
