@@ -1,10 +1,5 @@
 package jobmanager.messaging.handler;
 
-import jobmanager.database.MongoAccessor;
-import messaging.job.JobMessageFactory;
-import model.job.Job;
-import model.request.PiazzaJobRequest;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +7,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import messaging.job.JobMessageFactory;
+import model.job.Job;
+import model.request.PiazzaJobRequest;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * Handles the Kafka topic for the requesting of a Job on the "Request-Job"
- * topic. This will relay the "Create-Job" job topic to the appropriate worker
- * components, while additionally adding in the Job metadata to the Jobs table.
+ * Handles the Kafka topic for the requesting of a Job on the "Request-Job" topic. This will relay the "Create-Job" job
+ * topic to the appropriate worker components, while additionally adding in the Job metadata to the Jobs table.
  * 
  * @author Patrick.Doody
  *
@@ -30,11 +27,7 @@ public class RequestJobHandler {
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
-	private MongoAccessor accessor;
-	@Autowired
 	private UUIDFactory uuidFactory;
-	@Autowired
-	private AbortJobHandler abortJobHandler;
 	@Autowired
 	private CreateJobHandler createJobHandler;
 	@Value("${SPACE}")
@@ -43,9 +36,8 @@ public class RequestJobHandler {
 	private Producer<String, String> producer;
 
 	/**
-	 * Sets the producer for this Handler. Uses injection from the Job Messager
-	 * in order to be efficient in creating only one producer, as producers are
-	 * thread-safe.
+	 * Sets the producer for this Handler. Uses injection from the Job Messager in order to be efficient in creating
+	 * only one producer, as producers are thread-safe.
 	 * 
 	 * @param producer
 	 *            The producer.
@@ -55,9 +47,8 @@ public class RequestJobHandler {
 	}
 
 	/**
-	 * Processes a message on the "Request-Job" topic. This will add the Job
-	 * metadata into the Jobs table, and then fire the Kafka event to the worker
-	 * components to process the Job.
+	 * Processes a message on the "Request-Job" topic. This will add the Job metadata into the Jobs table, and then fire
+	 * the Kafka event to the worker components to process the Job.
 	 * 
 	 * @param consumerRecord
 	 *            The Job request message.
@@ -71,16 +62,15 @@ public class RequestJobHandler {
 			String jobId = consumerRecord.key();
 			process(jobRequest, jobId);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Processing Request-Job Topic %s with key %s", consumerRecord.topic(),
-					consumerRecord.key()), PiazzaLogger.ERROR);
+			logger.log(String.format("Error Processing Request-Job Topic %s with key %s", consumerRecord.topic(), consumerRecord.key()),
+					PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}
 
 	/**
-	 * Processes a new Piazza Job Request. This will add the Job metadata into
-	 * the Jobs table, and then fire the Kafka event to the worker components to
-	 * process the Job.
+	 * Processes a new Piazza Job Request. This will add the Job metadata into the Jobs table, and then fire the Kafka
+	 * event to the worker components to process the Job.
 	 * 
 	 * @param jobRequest
 	 *            The Job Request
@@ -104,9 +94,8 @@ public class RequestJobHandler {
 			// topic name of the Job type for all workers to
 			// listen to.
 			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
-			logger.log(
-					String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass()
-							.getSimpleName()), PiazzaLogger.INFO);
+			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
+					PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
 			exception.printStackTrace();

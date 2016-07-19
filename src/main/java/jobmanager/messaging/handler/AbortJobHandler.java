@@ -15,21 +15,19 @@
  **/
 package jobmanager.messaging.handler;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
 import util.PiazzaLogger;
 
 /**
- * Handles the request for Aborting a Job by updating the Job table with the new
- * Status.
+ * Handles the request for Aborting a Job by updating the Job table with the new Status.
  * 
  * @author Patrick.Doody
  * 
@@ -57,16 +55,14 @@ public class AbortJobHandler {
 		// Ensure the user has permission to cancel the Job.
 		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {
 			throw new Exception(
-					String.format("Could not Abort Job %s because it was not requested by the originating user.",
-							abortJob.getJobId()));
+					String.format("Could not Abort Job %s because it was not requested by the originating user.", abortJob.getJobId()));
 		}
 		String currentStatus = jobToCancel.status;
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLED);
 		} else {
-			throw new Exception(String.format("Could not Abort Job %s because it is no longer running.",
-					abortJob.getJobId()));
+			throw new Exception(String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId()));
 		}
 	}
 }

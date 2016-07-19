@@ -20,17 +20,12 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import model.job.Job;
-import model.job.JobProgress;
-import model.response.DataResourceListResponse;
-import model.response.JobListResponse;
-import model.response.Pagination;
-
 import org.mongojack.DBCursor;
 import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.DBSort;
 import org.mongojack.DBUpdate;
+import org.mongojack.DBUpdate.Builder;
 import org.mongojack.JacksonDBCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,6 +36,12 @@ import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoTimeoutException;
+
+import model.job.Job;
+import model.job.JobProgress;
+import model.response.JobListResponse;
+import model.response.Pagination;
+import model.status.StatusUpdate;
 
 /**
  * Helper class to interact with and access the Mongo instance.
@@ -193,7 +194,7 @@ public class MongoAccessor {
 	 * @param jobId
 	 *            The Job ID
 	 * @param status
-	 *            The Status
+	 *            The Status String of the Job
 	 */
 	public void updateJobStatus(String jobId, String status) {
 		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("status", status));
@@ -209,6 +210,75 @@ public class MongoAccessor {
 	 */
 	public void updateJobProgress(String jobId, JobProgress progress) {
 		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("progress", progress));
+	}
+
+	/**
+	 * Updates the Status of a Job. This will update the result, progress, and status of the Job. This method will
+	 * update in a single write to the database.
+	 * 
+	 * @param jobId
+	 *            The ID of the Job whose status to update
+	 * @param statusUpdate
+	 *            The Status Update information
+	 */
+	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) throws Exception {
+		// Determine if the Result is part of the status. If so, then this will be an entire delete/re-entry of the Job
+		// object into the database.
+		if (statusUpdate.getResult() != null) {
+			updateJobStatusWithResult(jobId, statusUpdate);
+		} else {
+			// If the Result is not part of the Status, then we can update the existing Job fields in a single commit.
+			// Form the DBUpdate, which will modify the fields
+			Builder update = new Builder();
+			if (statusUpdate.getProgress() != null) {
+				update.set("progress", statusUpdate.getProgress());
+			}
+			if (statusUpdate.getStatus().isEmpty() == false) {
+				update.set("status", statusUpdate.getStatus());
+			}
+			getJobCollection().update(DBQuery.is("jobId", jobId), update);
+		}
+	}
+
+	/**
+	 * Updates the Job with the Status Update; a Status that contains a Result object.
+	 * 
+	 * It is important to note that we are not doing an update of the Mongo Resource here, as one would expect. This is
+	 * due to a bug in MongoJack, documented here: https://github.com/mongojack/mongojack/issues/101; that explains how
+	 * updating of MongoJack collections with polymorphic objects currently only serializes the fields found in the
+	 * parent class or interface, and all child fields are ignored.
+	 * 
+	 * This is important for us because the Results of a Job are polymorphic (specifically, the ResultType interface)
+	 * and thus are not getting properly serialized as a result of this bug. This bug exists in all versions of
+	 * MongoJack and is still OPEN in GitHub issues.
+	 * 
+	 * Due to this issue, we are updating the Job properties in a Job object, and then deleting that object from the
+	 * database and immediately committing the new Job with the updates. The above-mentioned bug only affects updates,
+	 * so the work-around here is avoiding updates by creating a new object in the database. This is functionally
+	 * acceptable because we make no use of MongoDB's primary key - our key is based on the JobID property, which is
+	 * maintained throughout the transaction.
+	 * 
+	 * @param jobId
+	 *            The Job ID to update
+	 * @param statusUpdate
+	 *            The Status Update with the Result (and any other Status information)
+	 */
+	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate) throws Exception {
+		// Get the existing Job and all of its properties
+		Job job = getJobById(jobId);
+		// Remove existing Job
+		removeJob(jobId);
+		// Update the Job object with the Status information.
+		if (statusUpdate.getStatus().isEmpty() == false) {
+			job.setStatus(statusUpdate.getStatus());
+		}
+		if (statusUpdate.getProgress() != null) {
+			job.setProgress(statusUpdate.getProgress());
+		}
+		// Set the Result
+		job.result = statusUpdate.getResult();
+		// Re-add the Job to the database.
+		addJob(job);
 	}
 
 	/**
