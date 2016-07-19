@@ -194,7 +194,7 @@ public class JobController {
 			logger.log(String.format("Successfully cancelled Job %s by User %s",
 					((AbortJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 			return new ResponseEntity<PiazzaResponse>(new SuccessResponse("Job " + jobId
-					+ " was cancelled successfully", "Gateway"), HttpStatus.OK);
+					+ " was cancelled successfully", "Job Manager"), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
