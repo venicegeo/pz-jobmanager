@@ -15,19 +15,16 @@
  **/
 package jobmanager.messaging.handler;
 
-import jobmanager.database.MongoAccessor;
-import model.job.Job;
-import model.job.result.ResultType;
-import model.status.StatusUpdate;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import util.PiazzaLogger;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jobmanager.database.MongoAccessor;
+import model.status.StatusUpdate;
+import util.PiazzaLogger;
 
 /**
  * Handles the request for Updating the Status of a Job in the Job Table
@@ -50,61 +47,16 @@ public class UpdateStatusHandler {
 			// Get the Status wrapper that contains the updates to be applied
 			StatusUpdate statusUpdate = mapper.readValue(consumerRecord.value(), StatusUpdate.class);
 
-			// Update the Job Status, if specified
-			if (!statusUpdate.getStatus().isEmpty()) {
-				accessor.updateJobStatus(consumerRecord.key(), statusUpdate.getStatus());
-			}
+			// Update
+			accessor.updateJobStatus(consumerRecord.key(), statusUpdate);
 
-			// Update the Job progress, if specified
-			if (statusUpdate.getProgress() != null) {
-				accessor.updateJobProgress(consumerRecord.key(), statusUpdate.getProgress());
-			}
-
-			// Update the Result, if specified
-			if (statusUpdate.getResult() != null) {
-				// Update the Job Result
-				updateResult(consumerRecord.key(), statusUpdate.getResult());
-			}
-			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s",
-					consumerRecord.key(), statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);
+			// Log success
+			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s", consumerRecord.key(),
+					statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}
 
-	/**
-	 * It is important to note that we are not doing an update of the Mongo
-	 * Resource here, as one would expect. This is due to a bug in MongoJack,
-	 * documented here: https://github.com/mongojack/mongojack/issues/101; that
-	 * explains how updating of MongoJack collections with polymorphic objects
-	 * currently only serializes the fields found in the parent class or
-	 * interface, and all child fields are ignored.
-	 * 
-	 * This is important for us because the Results of a Job are polymorphic
-	 * (specifically, the ResultType interface) and thus are not getting
-	 * properly serialized as a result of this bug. This bug exists in all
-	 * versions of MongoJack and is still OPEN in GitHub issues.
-	 * 
-	 * Due to this issue, we are updating the Job properties in a Job object,
-	 * and then deleting that object from the database and immediately
-	 * committing the new Job with the updates. The above-mentioned bug only
-	 * affects updates, so the work-around here is avoiding updates by creating
-	 * a new object in the database. This is functionally acceptable because we
-	 * make no use of MongoDB's primary key - our key is based on the JobID
-	 * property, which is maintained throughout the transaction.
-	 * 
-	 * @param job
-	 *            The Job
-	 * @param result
-	 *            The Result
-	 */
-	private synchronized void updateResult(String jobId, ResultType result) {
-		Job job = accessor.getJobById(jobId);
-		job.result = result;
-		// Delete the existing entry for the Job
-		accessor.removeJob(job.getJobId());
-		// Re-add the Job Entry
-		accessor.addJob(job);
-	}
 }

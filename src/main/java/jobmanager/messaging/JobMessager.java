@@ -21,15 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 
-import jobmanager.database.MongoAccessor;
-import jobmanager.messaging.handler.AbortJobHandler;
-import jobmanager.messaging.handler.CreateJobHandler;
-import jobmanager.messaging.handler.RepeatJobHandler;
-import jobmanager.messaging.handler.RequestJobHandler;
-import jobmanager.messaging.handler.UpdateStatusHandler;
-import messaging.job.JobMessageFactory;
-import messaging.job.KafkaClientFactory;
-
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -40,12 +31,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
+import jobmanager.messaging.handler.UpdateStatusHandler;
+import messaging.job.JobMessageFactory;
+import messaging.job.KafkaClientFactory;
 import util.PiazzaLogger;
-import util.UUIDFactory;
 
 /**
- * Interacts with the Jobs Collection in the Mongo database based on Kafka
- * messages received.
+ * Interacts with the Jobs Collection in the Mongo database based on Kafka messages received.
  * 
  * @author Patrick.Doody
  * 
@@ -54,15 +48,7 @@ import util.UUIDFactory;
 public class JobMessager {
 	@Autowired
 	private PiazzaLogger logger;
-	@Autowired
-	private UUIDFactory uuidFactory;
-	@Autowired
-	private MongoAccessor accessor;
 
-	@Autowired
-	private AbortJobHandler abortJobHandler;
-	@Autowired
-	private CreateJobHandler createJobHandler;
 	@Autowired
 	private UpdateStatusHandler updateStatusHandler;
 	@Autowired
@@ -119,9 +105,8 @@ public class JobMessager {
 			List<String> topics = Arrays.asList(UPDATE_JOB_TOPIC_NAME, REQUEST_JOB_TOPIC_NAME);
 			consumer.subscribe(topics);
 			// Log that we are listening
-			logger.log(
-					String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_ADDRESS,
-							topics.toString()), PiazzaLogger.INFO);
+			logger.log(String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_ADDRESS, topics.toString()),
+					PiazzaLogger.INFO);
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
@@ -131,14 +116,13 @@ public class JobMessager {
 						processMessage(consumerRecord);
 					} catch (Exception exception) {
 						exception.printStackTrace();
-						logger.log(String.format("Error processing Job with Key %s under Topic %s",
-								consumerRecord.key(), consumerRecord.topic()), PiazzaLogger.ERROR);
+						logger.log(String.format("Error processing Job with Key %s under Topic %s", consumerRecord.key(),
+								consumerRecord.topic()), PiazzaLogger.ERROR);
 					}
 				}
 			}
 		} catch (WakeupException exception) {
-			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()),
-					PiazzaLogger.FATAL);
+			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()), PiazzaLogger.FATAL);
 			// Ignore exception if closing
 			if (!closed.get()) {
 				throw exception;
@@ -156,9 +140,8 @@ public class JobMessager {
 	}
 
 	/**
-	 * Processes an incoming Kafka Message. This will pass it off to the
-	 * appropriate handler that will make the necessary changes to the Jobs
-	 * Table.
+	 * Processes an incoming Kafka Message. This will pass it off to the appropriate handler that will make the
+	 * necessary changes to the Jobs Table.
 	 * 
 	 * @param consumerRecord
 	 *            The message to process.
@@ -166,8 +149,7 @@ public class JobMessager {
 	@Async
 	public void processMessage(ConsumerRecord<String, String> consumerRecord) throws Exception {
 		// Logging
-		logger.log(
-				String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
+		logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
 				PiazzaLogger.INFO);
 		// Delegate by Topic
 		if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
@@ -175,8 +157,7 @@ public class JobMessager {
 		} else if (consumerRecord.topic().equalsIgnoreCase(REQUEST_JOB_TOPIC_NAME)) {
 			requestJobHandler.process(consumerRecord);
 		} else {
-			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()),
-					PiazzaLogger.WARNING);
+			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()), PiazzaLogger.WARNING);
 		}
 	}
 }
