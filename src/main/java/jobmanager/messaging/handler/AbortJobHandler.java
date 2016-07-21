@@ -45,7 +45,6 @@ public class AbortJobHandler {
 	 * @param request
 	 *            Job request.
 	 */
-	@Async
 	public void process(PiazzaJobRequest request) throws Exception {
 		AbortJob abortJob = (AbortJob) request.jobType;
 		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
