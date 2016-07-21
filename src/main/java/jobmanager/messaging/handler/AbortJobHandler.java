@@ -16,7 +16,6 @@
 package jobmanager.messaging.handler;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import jobmanager.database.MongoAccessor;
@@ -24,7 +23,6 @@ import model.job.Job;
 import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
-import util.PiazzaLogger;
 
 /**
  * Handles the request for Aborting a Job by updating the Job table with the new Status.
@@ -34,8 +32,6 @@ import util.PiazzaLogger;
  */
 @Component
 public class AbortJobHandler {
-	@Autowired
-	private PiazzaLogger logger;
 	@Autowired
 	private MongoAccessor accessor;
 
