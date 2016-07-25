@@ -15,19 +15,27 @@
  **/
 package jobmanager;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
+
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @SpringBootApplication
+@Configuration
 @EnableAsync
 @EnableScheduling
 @ComponentScan({ "jobmanager, util" })
-public class Application extends SpringBootServletInitializer {
+public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
@@ -36,5 +44,28 @@ public class Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
+	}
+
+	@Override
+	public Executor getAsyncExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		// Thread pool site is capped at 500 because that is the maximum number of concurrent Mongo connections that
+		// this client can handle.
+		executor.setCorePoolSize(500);
+		executor.setMaxPoolSize(500);
+		executor.initialize();
+		return executor;
+	}
+
+	@Override
+	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+		return new AsyncUncaughtExceptionHandler() {
+			@Override
+			public void handleUncaughtException(Throwable ex, Method method, Object... params) {
+				String error = String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(),
+						method.getName());
+				System.out.println(error);
+			}
+		};
 	}
 }

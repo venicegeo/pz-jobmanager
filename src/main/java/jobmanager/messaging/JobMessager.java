@@ -146,11 +146,7 @@ public class JobMessager {
 	 * @param consumerRecord
 	 *            The message to process.
 	 */
-	@Async
 	public void processMessage(ConsumerRecord<String, String> consumerRecord) throws Exception {
-		// Logging
-		logger.log(String.format("Handling Job with Topic %s for Job ID %s", consumerRecord.topic(), consumerRecord.key()),
-				PiazzaLogger.INFO);
 		// Delegate by Topic
 		if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
 			updateStatusHandler.process(consumerRecord);
