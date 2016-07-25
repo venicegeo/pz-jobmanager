@@ -51,8 +51,8 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		// Thread pool site is capped at 500 because that is the maximum number of concurrent Mongo connections that
 		// this client can handle.
-		executor.setCorePoolSize(500);
-		executor.setMaxPoolSize(500);
+		executor.setCorePoolSize(300);
+		executor.setMaxPoolSize(300);
 		executor.initialize();
 		return executor;
 	}
