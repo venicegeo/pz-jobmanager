@@ -51,12 +51,11 @@ public class UpdateStatusHandler {
 			accessor.updateJobStatus(consumerRecord.key(), statusUpdate);
 
 			// Log success
-			logger.log(String.format("Processed Update Status for Job %s with Status %s of raw contents: %s", consumerRecord.key(),
-					statusUpdate.getStatus(), consumerRecord.value()), PiazzaLogger.INFO);
+			logger.log(String.format("Processed Update Status for Job %s with Status %s.", consumerRecord.key(), statusUpdate.getStatus()),
+					PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
 			exception.printStackTrace();
 		}
 	}
-
 }
