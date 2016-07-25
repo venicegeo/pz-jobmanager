@@ -15,6 +15,7 @@
  **/
 package jobmanager;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -58,6 +59,13 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 
 	@Override
 	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-		return null;
+		return new AsyncUncaughtExceptionHandler() {
+			@Override
+			public void handleUncaughtException(Throwable ex, Method method, Object... params) {
+				String error = String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(),
+						method.getName());
+				System.out.println(error);
+			}
+		};
 	}
 }
