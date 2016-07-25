@@ -119,11 +119,11 @@ public class MongoAccessor {
 	}
 
 	/**
-	 * Returns a Job that matches the specified ID.
+	 * Returns a Job that matches the specified Id.
 	 * 
 	 * @param jobId
-	 *            Job ID
-	 * @return The Job with the specified ID
+	 *            Job Id
+	 * @return The Job with the specified Id
 	 */
 	public Job getJobById(String jobId) throws ResourceAccessException {
 		BasicDBObject query = new BasicDBObject("jobId", jobId);
@@ -192,7 +192,7 @@ public class MongoAccessor {
 	 * Updates the status of a Job.
 	 * 
 	 * @param jobId
-	 *            The Job ID
+	 *            The Job Id
 	 * @param status
 	 *            The Status String of the Job
 	 */
@@ -204,7 +204,7 @@ public class MongoAccessor {
 	 * Updates the Progress of a Job
 	 * 
 	 * @param jobId
-	 *            The Job ID to update
+	 *            The Job Id to update
 	 * @param progress
 	 *            The progres to set
 	 */
@@ -217,7 +217,7 @@ public class MongoAccessor {
 	 * update in a single write to the database.
 	 * 
 	 * @param jobId
-	 *            The ID of the Job whose status to update
+	 *            The Id of the Job whose status to update
 	 * @param statusUpdate
 	 *            The Status Update information
 	 */
@@ -255,11 +255,11 @@ public class MongoAccessor {
 	 * Due to this issue, we are updating the Job properties in a Job object, and then deleting that object from the
 	 * database and immediately committing the new Job with the updates. The above-mentioned bug only affects updates,
 	 * so the work-around here is avoiding updates by creating a new object in the database. This is functionally
-	 * acceptable because we make no use of MongoDB's primary key - our key is based on the JobID property, which is
+	 * acceptable because we make no use of MongoDB's primary key - our key is based on the JobId property, which is
 	 * maintained throughout the transaction.
 	 * 
 	 * @param jobId
-	 *            The Job ID to update
+	 *            The Job Id to update
 	 * @param statusUpdate
 	 *            The Status Update with the Result (and any other Status information)
 	 */
@@ -285,7 +285,7 @@ public class MongoAccessor {
 	 * Deletes a Job entry.
 	 * 
 	 * @param jobId
-	 *            The ID of the job to delete
+	 *            The Id of the job to delete
 	 */
 	public void removeJob(String jobId) {
 		getJobCollection().remove(DBQuery.is("jobId", jobId));

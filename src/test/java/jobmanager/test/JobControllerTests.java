@@ -116,11 +116,11 @@ public class JobControllerTests {
 	 */
 	@Test
 	public void testStatus() {
-		// Test error handling on Null Job ID
+		// Test error handling on Null Job Id
 		PiazzaResponse response = jobController.getJobStatus(null).getBody();
 		assertTrue(response instanceof ErrorResponse);
 
-		// When we query the Status of the Mock Job's ID, return the Mock Job
+		// When we query the Status of the Mock Job's Id, return the Mock Job
 		when(accessor.getJobById(mockJob.jobId)).thenReturn(mockJob);
 
 		// Query the Job

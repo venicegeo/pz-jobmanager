@@ -104,12 +104,12 @@ public class JobController {
 	}
 
 	/**
-	 * Returns the Job Status and potential Results of the specified Job ID.
+	 * Returns the Job Status and potential Results of the specified Job Id.
 	 * This is used when the Gateway needs a synchronous, non-Kafka, response
 	 * for the specific status of a Job.
 	 * 
 	 * @param jobId
-	 *            The Job ID.
+	 *            The Job Id.
 	 * @return The StatusResponse object of the Job. This will, at the very
 	 *         least, involved the readiness of the Job. If not ready, the
 	 *         available Status and Progress of the Job will be included in this
@@ -120,13 +120,13 @@ public class JobController {
 	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
 		try {
 			if (jobId.isEmpty()) {
-				throw new Exception("No Job ID specified.");
+				throw new Exception("No Job Id specified.");
 			}
-			// Query for the Job ID
+			// Query for the Job Id
 			Job job = accessor.getJobById(jobId);
 			// If no Job was found.
 			if (job == null) {
-				logger.log(String.format("Job not found for requested ID %s", jobId), PiazzaLogger.WARNING);
+				logger.log(String.format("Job not found for requested Id %s", jobId), PiazzaLogger.WARNING);
 				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);				
 			}
 			// Return Job Status
@@ -146,22 +146,22 @@ public class JobController {
 	 * @param request
 	 *            The job request
 	 * @param jobId
-	 *            The ID of the job to create. Optional. If specified, this will
-	 *            be used for the Job ID. If not specified, then one will be
+	 *            The Id of the job to create. Optional. If specified, this will
+	 *            be used for the Job Id. If not specified, then one will be
 	 *            randomly generated.
-	 * @return The Response, containing the Job ID, or an Error
+	 * @return The Response, containing the Job Id, or an Error
 	 */
 	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
 			@RequestParam(value = "jobId", required = false) String jobId) {
 		try {
-			// Generate a Job ID if needed
+			// Generate a Job Id if needed
 			if (jobId.isEmpty()) {
 				jobId = uuidFactory.getUUID();
 			}
 			// Create the Job and send off the Job Kafka message
 			requestJobHandler.process(request, jobId);
-			// Return to the user the Job ID.
+			// Return to the user the Job Id.
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(jobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
@@ -207,7 +207,7 @@ public class JobController {
 	 * @param request
 	 *            The request, detailing the RepeatJob type and the user who has
 	 *            submitted this request.
-	 * @return The response containing the Job ID if successful. Appropriate
+	 * @return The response containing the Job Id if successful. Appropriate
 	 *         error details returned on exception.
 	 */
 	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -226,10 +226,10 @@ public class JobController {
 			repeatJobHandler.process(jobToRepeat, newJobId);
 
 			// Log the successful Repetition of the Job
-			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
+			logger.log(String.format("Successfully created a Repeat Job under Id %s for original Job Id %s by user %s",
 					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 
-			// Return the Job ID
+			// Return the Job Id
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
