@@ -3,7 +3,7 @@ applications:
   host: pz-jobmanager
   path: pz-jobmanager.jar
   buildpack: java_buildpack_offline
-  memory: 1G
+  memory: 512M
   instances: 1
   timeout: 80
   services:

@@ -49,10 +49,9 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	@Override
 	public Executor getAsyncExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		// Thread pool site is capped at 500 because that is the maximum number of concurrent Mongo connections that
-		// this client can handle.
-		executor.setCorePoolSize(300);
-		executor.setMaxPoolSize(300);
+		// Thread pool capped to work optimally at 512MB ram (per the PCF app)
+		executor.setCorePoolSize(250);
+		executor.setMaxPoolSize(250);
 		executor.initialize();
 		return executor;
 	}
