@@ -48,7 +48,7 @@ public class AbortJobHandler {
 		AbortJob abortJob = (AbortJob) request.jobType;
 		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
 		if (jobToCancel == null) {
-			throw new Exception(String.format("No job could be founding matching ID %s", abortJob.getJobId()));
+			throw new Exception(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
 		}
 		// Ensure the user has permission to cancel the Job.
 		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {

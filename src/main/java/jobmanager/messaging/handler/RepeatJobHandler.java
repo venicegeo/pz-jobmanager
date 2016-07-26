@@ -65,7 +65,7 @@ public class RepeatJobHandler {
 		newJobRequest.createdBy = job.createdBy;
 		newJobRequest.jobType = job.getJobType();
 
-		// Dispatch the Message to Repeat the selected Job. Create an ID so
+		// Dispatch the Message to Repeat the selected Job. Create an Id so
 		// we can immediately attach a result to the RepeatJob request.
 		ProducerRecord<String, String> repeatJobMessage = 
 				JobMessageFactory.getRequestJobMessage(newJobRequest, newRepeatJobId, SPACE);

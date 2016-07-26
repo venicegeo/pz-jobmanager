@@ -15,7 +15,6 @@
  **/
 package jobmanager.test;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
@@ -36,7 +35,6 @@ import model.job.Job;
 import model.job.JobProgress;
 import model.job.result.type.TextResult;
 import model.job.type.AbortJob;
-import model.job.type.AccessJob;
 import model.job.type.IngestJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
@@ -53,8 +51,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import util.PiazzaLogger;
 import util.UUIDFactory;
 

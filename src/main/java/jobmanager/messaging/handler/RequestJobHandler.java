@@ -75,16 +75,16 @@ public class RequestJobHandler {
 	 * @param jobRequest
 	 *            The Job Request
 	 * @param jobId
-	 *            the Job ID
+	 *            the Job Id
 	 */
 	@Async
 	public void process(PiazzaJobRequest jobRequest, String jobId) {
 		try {
 			Job job = new Job(jobRequest, jobId);
 			// If the job was submitted internally, the submitter
-			// wouldn't give it an ID. Assign a random ID here. (If
+			// wouldn't give it an Id. Assign a random Id here. (If
 			// submitted via the Gateway, the Gateway will assign
-			// the ID)
+			// the Id)
 			if (job.getJobId().isEmpty()) {
 				job.setJobId(uuidFactory.getUUID());
 			}
@@ -94,7 +94,7 @@ public class RequestJobHandler {
 			// topic name of the Job type for all workers to
 			// listen to.
 			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
-			logger.log(String.format("Relayed Job ID %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
+			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
