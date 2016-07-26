@@ -152,7 +152,6 @@ public class HandlerTests {
 	/**
 	 * Tests the cancelling of an already aborted Job
 	 */
-	@Test(expected = Exception.class)
 	public void testAbortCancelledJob() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
