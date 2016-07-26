@@ -104,17 +104,14 @@ public class JobController {
 	}
 
 	/**
-	 * Returns the Job Status and potential Results of the specified Job ID.
-	 * This is used when the Gateway needs a synchronous, non-Kafka, response
-	 * for the specific status of a Job.
+	 * Returns the Job Status and potential Results of the specified Job ID. This is used when the Gateway needs a
+	 * synchronous, non-Kafka, response for the specific status of a Job.
 	 * 
 	 * @param jobId
 	 *            The Job ID.
-	 * @return The StatusResponse object of the Job. This will, at the very
-	 *         least, involved the readiness of the Job. If not ready, the
-	 *         available Status and Progress of the Job will be included in this
-	 *         response object. If the job is ready, then this Response will
-	 *         contain an Object reference to the output produced by the Job.
+	 * @return The StatusResponse object of the Job. This will, at the very least, involved the readiness of the Job. If
+	 *         not ready, the available Status and Progress of the Job will be included in this response object. If the
+	 *         job is ready, then this Response will contain an Object reference to the output produced by the Job.
 	 */
 	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
@@ -127,28 +124,28 @@ public class JobController {
 			// If no Job was found.
 			if (job == null) {
 				logger.log(String.format("Job not found for requested ID %s", jobId), PiazzaLogger.WARNING);
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);				
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+						HttpStatus.NOT_FOUND);
 			}
 			// Return Job Status
 			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
 			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	/**
-	 * Sends a new Piazza Job Request to the Job Manager. This will add a new
-	 * entry in the Jobs table for the request, and will also proxy off the
-	 * Kafka message to the worker components.
+	 * Sends a new Piazza Job Request to the Job Manager. This will add a new entry in the Jobs table for the request,
+	 * and will also proxy off the Kafka message to the worker components.
 	 * 
 	 * @param request
 	 *            The job request
 	 * @param jobId
-	 *            The ID of the job to create. Optional. If specified, this will
-	 *            be used for the Job ID. If not specified, then one will be
-	 *            randomly generated.
+	 *            The ID of the job to create. Optional. If specified, this will be used for the Job ID. If not
+	 *            specified, then one will be randomly generated.
 	 * @return The Response, containing the Job ID, or an Error
 	 */
 	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -174,10 +171,8 @@ public class JobController {
 	 * Aborts a currently running Piazza Job.
 	 * 
 	 * @param request
-	 *            The request, detailing the AbortJob type and the user who has
-	 *            requested this action.
-	 * @return null response if successful. ErrorResponse containing appropriate
-	 *         error details on exception.
+	 *            The request, detailing the AbortJob type and the user who has requested this action.
+	 * @return null response if successful. ErrorResponse containing appropriate error details on exception.
 	 */
 	@RequestMapping(value = "/abort", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> abortJob(@RequestBody PiazzaJobRequest request) {
@@ -186,18 +181,28 @@ public class JobController {
 			String jobId = ((AbortJob) request.jobType).getJobId();
 			Job jobToCancel = accessor.getJobById(jobId);
 			if (jobToCancel == null) {
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+						HttpStatus.NOT_FOUND);
 			}
-			// Abort the Job in the Jobs table.
-			abortJobHandler.process(request);
-			// Log the successful Cancellation
-			logger.log(String.format("Successfully cancelled Job %s by User %s",
-					((AbortJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
-			return new ResponseEntity<PiazzaResponse>(new SuccessResponse("Job " + jobId
-					+ " was cancelled successfully", "Job Manager"), HttpStatus.OK);
+			String currentStatus = jobToCancel.status;
+			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
+					|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
+				// Abort the Job in the Jobs table.
+				abortJobHandler.process(request);
+				// Log the successful Cancellation
+				logger.log(String.format("Successfully cancelled Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
+						request.createdBy), PiazzaLogger.INFO);
+				return new ResponseEntity<PiazzaResponse>(
+						new SuccessResponse("Job " + jobId + " was cancelled successfully", "Job Manager"), HttpStatus.OK);
+			} else {
+				return new ResponseEntity<PiazzaResponse>(new SuccessResponse(String
+						.format("Could not Abort Job because it is no longer running. The Job reported a status of %s", currentStatus),
+						"Job Manager"), HttpStatus.OK);
+			}
 		} catch (Exception exception) {
 			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -205,44 +210,43 @@ public class JobController {
 	 * Repeats an existing Job within Piazza.
 	 * 
 	 * @param request
-	 *            The request, detailing the RepeatJob type and the user who has
-	 *            submitted this request.
-	 * @return The response containing the Job ID if successful. Appropriate
-	 *         error details returned on exception.
+	 *            The request, detailing the RepeatJob type and the user who has submitted this request.
+	 * @return The response containing the Job ID if successful. Appropriate error details returned on exception.
 	 */
 	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> repeatJob(@RequestBody PiazzaJobRequest request) {
 		try {
 			// Verify the Job exists
-			String jobId = ((RepeatJob)request.jobType).jobId;
+			String jobId = ((RepeatJob) request.jobType).jobId;
 			Job jobToRepeat = accessor.getJobById(jobId);
 
 			if (jobToRepeat == null) {
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);
-			}			
-			
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+						HttpStatus.NOT_FOUND);
+			}
+
 			// Repeat the Job; ASYNC process
 			final String newJobId = uuidFactory.getUUID();
 			repeatJobHandler.process(jobToRepeat, newJobId);
 
 			// Log the successful Repetition of the Job
-			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s",
-					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
+			logger.log(String.format("Successfully created a Repeat Job under ID %s for original Job ID %s by user %s", newJobId,
+					((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 
 			// Return the Job ID
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager"),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	/**
 	 * Returns Jobs currently held by the Piazza Job table.
 	 * 
-	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration
-	 * application for reporting the status of this Job Manager component. It is
-	 * not used in normal function of the Job Manager.
+	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration application for reporting the status of
+	 * this Job Manager component. It is not used in normal function of the Job Manager.
 	 * 
 	 * @param page
 	 *            The start page
@@ -251,8 +255,7 @@ public class JobController {
 	 * @return The List of all Jobs in the system.
 	 */
 	@RequestMapping(value = "/job", method = RequestMethod.GET)
-	public JobListResponse getJobs(
-			@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
+	public JobListResponse getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "perPage", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@RequestParam(value = "order", required = false, defaultValue = "asc") String order,
 			@RequestParam(value = "sortBy", required = false, defaultValue = "submitted") String sortBy,
@@ -269,9 +272,8 @@ public class JobController {
 	/**
 	 * Returns the Number of Jobs in the piazza system.
 	 * 
-	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration
-	 * application for reporting the status of this Job Manager component. It is
-	 * not used in normal function of the Job Manager.
+	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration application for reporting the status of
+	 * this Job Manager component. It is not used in normal function of the Job Manager.
 	 * 
 	 * @return Number of Jobs in the system.
 	 */
@@ -283,9 +285,8 @@ public class JobController {
 	/**
 	 * Gets all Job Status types that can be queried for by the system.
 	 * 
-	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration
-	 * application for reporting the status of this Job Manager component. It is
-	 * not used in normal function of the Job Manager.
+	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration application for reporting the status of
+	 * this Job Manager component. It is not used in normal function of the Job Manager.
 	 * 
 	 * @return List of Job Status types that can be queried for in the system.
 	 */
@@ -305,9 +306,8 @@ public class JobController {
 	/**
 	 * Gets the count for all Jobs of the specified status.
 	 * 
-	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration
-	 * application for reporting the status of this Job Manager component. It is
-	 * not used in normal function of the Job Manager.
+	 * This is intended to be used by the Swiss-Army-Knife (SAK) administration application for reporting the status of
+	 * this Job Manager component. It is not used in normal function of the Job Manager.
 	 * 
 	 * @return List of Jobs that match the specified status.
 	 */
@@ -338,8 +338,8 @@ public class JobController {
 	}
 
 	/**
-	 * Drops the Mongo collections. This is for internal development use only.
-	 * We should probably remove this in the future. Don't use this.
+	 * Drops the Mongo collections. This is for internal development use only. We should probably remove this in the
+	 * future. Don't use this.
 	 */
 	@RequestMapping(value = "/drop")
 	public String dropJobTables(@RequestParam(value = "serious", required = false) Boolean serious) {

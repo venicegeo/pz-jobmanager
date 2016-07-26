@@ -23,6 +23,7 @@ import model.job.Job;
 import model.job.type.AbortJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
+import util.PiazzaLogger;
 
 /**
  * Handles the request for Aborting a Job by updating the Job table with the new Status.
@@ -32,6 +33,8 @@ import model.status.StatusUpdate;
  */
 @Component
 public class AbortJobHandler {
+	@Autowired
+	private PiazzaLogger logger;
 	@Autowired
 	private MongoAccessor accessor;
 
@@ -57,7 +60,8 @@ public class AbortJobHandler {
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLED);
 		} else {
-			throw new Exception(String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId()));
+			String error = String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId());
+			logger.log(error, PiazzaLogger.INFO);
 		}
 	}
 }
