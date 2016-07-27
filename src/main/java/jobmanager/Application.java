@@ -50,8 +50,8 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	public Executor getAsyncExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		// Thread pool capped to work optimally at 512MB ram (per the PCF app)
-		executor.setCorePoolSize(150);
-		executor.setMaxPoolSize(150);
+		executor.setCorePoolSize(100);
+		executor.setMaxPoolSize(100);
 		executor.initialize();
 		return executor;
 	}
