@@ -352,18 +352,4 @@ public class JobController {
 
 		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
 	}
-
-	/**
-	 * Drops the Mongo collections. This is for internal development use only. We should probably remove this in the
-	 * future. Don't use this.
-	 */
-	@RequestMapping(value = "/drop")
-	public String dropJobTables(@RequestParam(value = "serious", required = false) Boolean serious) {
-		if ((serious != null) && (serious.booleanValue())) {
-			accessor.getJobCollection().drop();
-			return "Jobs dropped.";
-		} else {
-			return "You're not serious.";
-		}
-	}
 }
