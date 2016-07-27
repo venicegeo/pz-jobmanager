@@ -17,15 +17,25 @@ package jobmanager.test;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import jobmanager.controller.JobController;
 import jobmanager.database.MongoAccessor;
@@ -45,22 +55,11 @@ import model.response.JobStatusResponse;
 import model.response.Pagination;
 import model.response.PiazzaResponse;
 import model.status.StatusUpdate;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
 /**
- * Tests the Job Controller REST Endpoint, which returns Job Status and other
- * Job Table information.
+ * Tests the Job Controller REST Endpoint, which returns Job Status and other Job Table information.
  * 
  * @author Patrick.Doody
  * 
@@ -78,6 +77,8 @@ public class JobControllerTests {
 	private AbortJobHandler abortJobHandler;
 	@Mock
 	private RepeatJobHandler repeatJobHandler;
+	@Mock
+	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@InjectMocks
 	private JobController jobController;
 
@@ -171,7 +172,7 @@ public class JobControllerTests {
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
 		when(uuidFactory.getUUID()).thenReturn("123456");
 		Mockito.doNothing().when(repeatJobHandler).process(any(Job.class), any(String.class));
-		
+
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
 
@@ -195,8 +196,7 @@ public class JobControllerTests {
 	public void testGetJobs() {
 		JobListResponse mockResponse = new JobListResponse(mockJobs, new Pagination());
 		// Mock
-		when(accessor.getJobs(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(
-				mockResponse);
+		when(accessor.getJobs(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(mockResponse);
 
 		// Test
 		JobListResponse jobs = jobController.getJobs("0", "10", "asc", "jobId", null, null);
