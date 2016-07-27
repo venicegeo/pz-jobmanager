@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -36,6 +37,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableScheduling
 @ComponentScan({ "jobmanager, util" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
+	@Value("${thread.count}")
+	private int threadCount;
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
@@ -50,8 +53,9 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	public Executor getAsyncExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		// Thread pool capped to work optimally at 512MB ram (per the PCF app)
-		executor.setCorePoolSize(100);
-		executor.setMaxPoolSize(100);
+		System.out.println(threadCount);
+		executor.setCorePoolSize(threadCount);
+		executor.setMaxPoolSize(threadCount);
 		executor.initialize();
 		return executor;
 	}
