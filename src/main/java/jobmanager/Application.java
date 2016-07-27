@@ -37,8 +37,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableScheduling
 @ComponentScan({ "jobmanager, util" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
-	@Value("${thread.count}")
-	private int threadCount;
+	@Value("${thread.count.size}")
+	private int threadCountSize;
+	@Value("${thread.count.limit}")
+	private int threadCountLimit;
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
@@ -53,9 +55,8 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	public Executor getAsyncExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		// Thread pool capped to work optimally at 512MB ram (per the PCF app)
-		System.out.println(threadCount);
-		executor.setCorePoolSize(threadCount);
-		executor.setMaxPoolSize(threadCount);
+		executor.setCorePoolSize(threadCountSize);
+		executor.setMaxPoolSize(threadCountLimit);
 		executor.initialize();
 		return executor;
 	}
