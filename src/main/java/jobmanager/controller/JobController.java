@@ -336,9 +336,9 @@ public class JobController {
 		stats.put("pending", getStatusCount(StatusUpdate.STATUS_PENDING));
 		stats.put("submitted", getStatusCount(StatusUpdate.STATUS_SUBMITTED));
 		stats.put("cancelled", getStatusCount(StatusUpdate.STATUS_CANCELLED));
-		stats.put("active threads", threadPoolTaskExecutor.getActiveCount());
+		stats.put("activeThreads", threadPoolTaskExecutor.getActiveCount());
 		if (threadPoolTaskExecutor.getThreadPoolExecutor() != null) {
-			stats.put("thread queue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
+			stats.put("threadQueue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
 		}
 
 		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
