@@ -23,6 +23,20 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.kafka.clients.producer.Producer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
@@ -39,20 +53,6 @@ import model.response.JobStatusResponse;
 import model.response.PiazzaResponse;
 import model.response.SuccessResponse;
 import model.status.StatusUpdate;
-
-import org.apache.kafka.clients.producer.Producer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -73,6 +73,8 @@ public class JobController {
 	private RepeatJobHandler repeatJobHandler;
 	@Autowired
 	private RequestJobHandler requestJobHandler;
+	@Autowired
+	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@Value("${SPACE}")
 	private String SPACE;
 
@@ -104,17 +106,14 @@ public class JobController {
 	}
 
 	/**
-	 * Returns the Job Status and potential Results of the specified Job Id.
-	 * This is used when the Gateway needs a synchronous, non-Kafka, response
-	 * for the specific status of a Job.
+	 * Returns the Job Status and potential Results of the specified Job Id. This is used when the Gateway needs a
+	 * synchronous, non-Kafka, response for the specific status of a Job.
 	 * 
 	 * @param jobId
 	 *            The Job Id.
-	 * @return The StatusResponse object of the Job. This will, at the very
-	 *         least, involved the readiness of the Job. If not ready, the
-	 *         available Status and Progress of the Job will be included in this
-	 *         response object. If the job is ready, then this Response will
-	 *         contain an Object reference to the output produced by the Job.
+	 * @return The StatusResponse object of the Job. This will, at the very least, involved the readiness of the Job. If
+	 *         not ready, the available Status and Progress of the Job will be included in this response object. If the
+	 *         job is ready, then this Response will contain an Object reference to the output produced by the Job.
 	 */
 	@RequestMapping(value = "/job/{jobId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
@@ -127,7 +126,8 @@ public class JobController {
 			// If no Job was found.
 			if (job == null) {
 				logger.log(String.format("Job not found for requested Id %s", jobId), PiazzaLogger.WARNING);
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"), HttpStatus.NOT_FOUND);				
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+						HttpStatus.NOT_FOUND);
 			}
 			// Return Job Status
 			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
@@ -146,16 +146,9 @@ public class JobController {
 	 * @param request
 	 *            The job request
 	 * @param jobId
-<<<<<<< HEAD
-	 *            The ID of the job to create. Optional. If specified, this will be used for the Job ID. If not
+	 *            The Id of the job to create. Optional. If specified, this will be used for the Job Id. If not
 	 *            specified, then one will be randomly generated.
-	 * @return The Response, containing the Job ID, or an Error
-=======
-	 *            The Id of the job to create. Optional. If specified, this will
-	 *            be used for the Job Id. If not specified, then one will be
-	 *            randomly generated.
 	 * @return The Response, containing the Job Id, or an Error
->>>>>>> origin/master
 	 */
 	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
@@ -219,15 +212,9 @@ public class JobController {
 	 * Repeats an existing Job within Piazza.
 	 * 
 	 * @param request
-<<<<<<< HEAD
 	 *            The request, detailing the RepeatJob type and the user who has submitted this request.
-	 * @return The response containing the Job ID if successful. Appropriate error details returned on exception.
-=======
-	 *            The request, detailing the RepeatJob type and the user who has
-	 *            submitted this request.
-	 * @return The response containing the Job Id if successful. Appropriate
-	 *         error details returned on exception.
->>>>>>> origin/master
+	 * @return The response containing the Job Id if successful. Appropriate error details returned on exception.
+	 * 
 	 */
 	@RequestMapping(value = "/repeat", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> repeatJob(@RequestBody PiazzaJobRequest request) {
@@ -246,8 +233,8 @@ public class JobController {
 			repeatJobHandler.process(jobToRepeat, newJobId);
 
 			// Log the successful Repetition of the Job
-			logger.log(String.format("Successfully created a Repeat Job under Id %s for original Job Id %s by user %s",
-					newJobId, ((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
+			logger.log(String.format("Successfully created a Repeat Job under Id %s for original Job Id %s by user %s", newJobId,
+					((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
 
 			// Return the Job Id
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
@@ -349,6 +336,10 @@ public class JobController {
 		stats.put("pending", getStatusCount(StatusUpdate.STATUS_PENDING));
 		stats.put("submitted", getStatusCount(StatusUpdate.STATUS_SUBMITTED));
 		stats.put("cancelled", getStatusCount(StatusUpdate.STATUS_CANCELLED));
+		stats.put("active threads", threadPoolTaskExecutor.getActiveCount());
+		if (threadPoolTaskExecutor.getThreadPoolExecutor() != null) {
+			stats.put("thread queue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
+		}
 
 		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
 	}
