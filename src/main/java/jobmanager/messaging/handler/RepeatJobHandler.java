@@ -32,16 +32,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RepeatJobHandler {
-
 	@Value("${SPACE}")
 	private String SPACE;
 
 	private Producer<String, String> producer;
 
 	/**
-	 * Sets the producer for this Handler. Uses injection from the Job Messager
-	 * in order to be efficient in creating only one producer, as producers are
-	 * thread-safe.
+	 * Sets the producer for this Handler. Uses injection from the Job Messager in order to be efficient in creating
+	 * only one producer, as producers are thread-safe.
 	 * 
 	 * @param producer
 	 *            The producer.
@@ -67,8 +65,7 @@ public class RepeatJobHandler {
 
 		// Dispatch the Message to Repeat the selected Job. Create an Id so
 		// we can immediately attach a result to the RepeatJob request.
-		ProducerRecord<String, String> repeatJobMessage = 
-				JobMessageFactory.getRequestJobMessage(newJobRequest, newRepeatJobId, SPACE);
-		producer.send(repeatJobMessage).get();
+		ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(newJobRequest, newRepeatJobId, SPACE);
+		producer.send(repeatJobMessage);
 	}
 }

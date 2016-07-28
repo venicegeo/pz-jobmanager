@@ -40,7 +40,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import jobmanager.controller.JobController;
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
-import jobmanager.messaging.handler.CreateJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import model.job.Job;
 import model.job.JobProgress;
@@ -71,8 +70,6 @@ public class JobControllerTests {
 	private UUIDFactory uuidFactory;
 	@Mock
 	private MongoAccessor accessor;
-	@Mock
-	private CreateJobHandler createJobHandler;
 	@Mock
 	private AbortJobHandler abortJobHandler;
 	@Mock

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
 import model.request.PiazzaJobRequest;
@@ -29,11 +30,12 @@ public class RequestJobHandler {
 	@Autowired
 	private UUIDFactory uuidFactory;
 	@Autowired
-	private CreateJobHandler createJobHandler;
+	private MongoAccessor accessor;
 	@Value("${SPACE}")
 	private String SPACE;
 
 	private Producer<String, String> producer;
+	ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * Sets the producer for this Handler. Uses injection from the Job Messager in order to be efficient in creating
@@ -57,14 +59,12 @@ public class RequestJobHandler {
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		try {
 			// Deserialize the message
-			ObjectMapper mapper = new ObjectMapper();
 			PiazzaJobRequest jobRequest = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
 			String jobId = consumerRecord.key();
 			process(jobRequest, jobId);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Processing Request-Job Topic %s with key %s", consumerRecord.topic(), consumerRecord.key()),
-					PiazzaLogger.ERROR);
-			exception.printStackTrace();
+			logger.log(String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
+					consumerRecord.key(), exception.getMessage()), PiazzaLogger.ERROR);
 		}
 	}
 
@@ -89,16 +89,15 @@ public class RequestJobHandler {
 				job.setJobId(uuidFactory.getUUID());
 			}
 			// Commit the Job metadata to the Jobs table
-			createJobHandler.process(job);
+			accessor.getJobCollection().insert(job);
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
-			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE)).get();
+			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE));
 			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Processing Request-Job."), PiazzaLogger.ERROR);
-			exception.printStackTrace();
+			logger.log(String.format("Error Processing Request-Job with error %s", exception.getMessage()), PiazzaLogger.ERROR);
 		}
 	}
 }

@@ -15,20 +15,12 @@
  **/
 package jobmanager.test;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-
-import jobmanager.database.MongoAccessor;
-import jobmanager.messaging.handler.CreateJobHandler;
-import jobmanager.messaging.handler.RequestJobHandler;
-import model.job.Job;
-import model.job.type.RepeatJob;
-import model.request.PiazzaJobRequest;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
@@ -37,15 +29,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jobmanager.database.MongoAccessor;
+import jobmanager.messaging.handler.RequestJobHandler;
+import model.job.type.RepeatJob;
+import model.request.PiazzaJobRequest;
 import util.PiazzaLogger;
 import util.UUIDFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests the Handler for requesting Jobs
@@ -60,8 +55,6 @@ public class RequestHandlerTests {
 	private MongoAccessor accessor;
 	@Mock
 	private UUIDFactory uuidFactory;
-	@Mock
-	private CreateJobHandler createJobHandler;
 	@Mock
 	private Producer<String, String> producer;
 
@@ -101,7 +94,6 @@ public class RequestHandlerTests {
 		ConsumerRecord<String, String> record = new ConsumerRecord<String, String>("Request-Job", 0, 0, new String(),
 				new ObjectMapper().writeValueAsString(mockRequest));
 		requestJobHandler.setProducer(producer);
-		Mockito.doNothing().when(createJobHandler).process(any(Job.class));
 
 		// Test
 		requestJobHandler.process(record);

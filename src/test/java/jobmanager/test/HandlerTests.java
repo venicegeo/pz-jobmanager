@@ -25,21 +25,6 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
-import jobmanager.database.MongoAccessor;
-import jobmanager.messaging.handler.AbortJobHandler;
-import jobmanager.messaging.handler.CreateJobHandler;
-import jobmanager.messaging.handler.RepeatJobHandler;
-import jobmanager.messaging.handler.RequestJobHandler;
-import jobmanager.messaging.handler.UpdateStatusHandler;
-import model.job.Job;
-import model.job.JobProgress;
-import model.job.result.type.TextResult;
-import model.job.type.AbortJob;
-import model.job.type.IngestJob;
-import model.job.type.RepeatJob;
-import model.request.PiazzaJobRequest;
-import model.status.StatusUpdate;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -51,10 +36,24 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import util.PiazzaLogger;
-import util.UUIDFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jobmanager.database.MongoAccessor;
+import jobmanager.messaging.handler.AbortJobHandler;
+import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
+import jobmanager.messaging.handler.UpdateStatusHandler;
+import model.job.Job;
+import model.job.JobProgress;
+import model.job.result.type.TextResult;
+import model.job.type.AbortJob;
+import model.job.type.IngestJob;
+import model.job.type.RepeatJob;
+import model.request.PiazzaJobRequest;
+import model.status.StatusUpdate;
+import util.PiazzaLogger;
+import util.UUIDFactory;
 
 /**
  * Tests the Job Handlers
@@ -74,8 +73,6 @@ public class HandlerTests {
 
 	@InjectMocks
 	private AbortJobHandler abortJobHandler;
-	@InjectMocks
-	private CreateJobHandler createJobHandler;
 	@InjectMocks
 	private RepeatJobHandler repeatJobHandler;
 	@InjectMocks

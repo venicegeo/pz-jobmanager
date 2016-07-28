@@ -28,7 +28,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import jobmanager.messaging.handler.RepeatJobHandler;
@@ -115,9 +114,8 @@ public class JobMessager {
 					try {
 						processMessage(consumerRecord);
 					} catch (Exception exception) {
-						exception.printStackTrace();
-						logger.log(String.format("Error processing Job with Key %s under Topic %s", consumerRecord.key(),
-								consumerRecord.topic()), PiazzaLogger.ERROR);
+						logger.log(String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
+								consumerRecord.topic(), exception.getMessage()), PiazzaLogger.ERROR);
 					}
 				}
 			}

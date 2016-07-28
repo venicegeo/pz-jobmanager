@@ -39,11 +39,12 @@ public class UpdateStatusHandler {
 	@Autowired
 	private MongoAccessor accessor;
 
+	ObjectMapper mapper = new ObjectMapper();
+
 	@Async
 	public void process(ConsumerRecord<String, String> consumerRecord) {
 		// Changing the Status in the Job Table
 		try {
-			ObjectMapper mapper = new ObjectMapper();
 			// Get the Status wrapper that contains the updates to be applied
 			StatusUpdate statusUpdate = mapper.readValue(consumerRecord.value(), StatusUpdate.class);
 
@@ -54,8 +55,8 @@ public class UpdateStatusHandler {
 			logger.log(String.format("Processed Update Status for Job %s with Status %s.", consumerRecord.key(), statusUpdate.getStatus()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Updating Status for Job %s", consumerRecord.key()), PiazzaLogger.ERROR);
-			exception.printStackTrace();
+			logger.log(String.format("Error Updating Status for Job %s with error %s", consumerRecord.key(), exception.getMessage()),
+					PiazzaLogger.ERROR);
 		}
 	}
 }

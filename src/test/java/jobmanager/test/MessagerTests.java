@@ -18,13 +18,6 @@ package jobmanager.test;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
-import jobmanager.database.MongoAccessor;
-import jobmanager.messaging.JobMessager;
-import jobmanager.messaging.handler.AbortJobHandler;
-import jobmanager.messaging.handler.CreateJobHandler;
-import jobmanager.messaging.handler.RepeatJobHandler;
-import jobmanager.messaging.handler.RequestJobHandler;
-import jobmanager.messaging.handler.UpdateStatusHandler;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -37,6 +30,12 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import jobmanager.database.MongoAccessor;
+import jobmanager.messaging.JobMessager;
+import jobmanager.messaging.handler.AbortJobHandler;
+import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
+import jobmanager.messaging.handler.UpdateStatusHandler;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -55,8 +54,6 @@ public class MessagerTests {
 	private MongoAccessor accessor;
 	@Mock
 	private AbortJobHandler abortJobHandler;
-	@Mock
-	private CreateJobHandler createJobHandler;
 	@Mock
 	private UpdateStatusHandler updateStatusHandler;
 	@Mock
