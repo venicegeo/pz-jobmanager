@@ -343,4 +343,10 @@ public class JobController {
 
 		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/gc", method = RequestMethod.GET)
+	public String gc() {
+		System.gc();
+		return "GC";
+	}
 }
