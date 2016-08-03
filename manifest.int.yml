@@ -12,5 +12,6 @@ applications:
   env:
     SPRING_PROFILES_ACTIVE: cloud
   memory_calculator:
+    version: 2.0.1_RELEASE
     memory_sizes:
       heap: 256m
