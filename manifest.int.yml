@@ -11,5 +11,6 @@ applications:
     - pz-mongodb
   env:
     SPRING_PROFILES_ACTIVE: cloud
-  memory_sizes:
-    heap: 256m
+  memory_calculator:
+    memory_sizes:
+      heap: 256m
