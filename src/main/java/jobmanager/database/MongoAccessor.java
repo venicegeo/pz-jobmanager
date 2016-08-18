@@ -122,14 +122,18 @@ public class MongoAccessor {
 	 * @param jobId
 	 *            Job Id
 	 * @return The Job with the specified Id
+	 * @throws InterruptedException
 	 */
-	public Job getJobById(String jobId) throws ResourceAccessException {
+	public Job getJobById(String jobId) throws ResourceAccessException, InterruptedException {
 		BasicDBObject query = new BasicDBObject("jobId", jobId);
 		Job job;
 
 		try {
 			if ((job = getJobCollection().findOne(query)) == null) {
-				return null;
+				// In case the Job was being updated, or it doesn't exist at this point, try once more. I admit this is
+				// not optimal, but it certainly covers a host of race conditions.
+				Thread.sleep(100);
+				job = getJobCollection().findOne(query);
 			}
 		} catch (MongoTimeoutException mte) {
 			throw new ResourceAccessException("MongoDB instance not available.");

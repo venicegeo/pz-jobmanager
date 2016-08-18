@@ -113,7 +113,7 @@ public class JobControllerTests {
 	 * Test /job/{jobId}
 	 */
 	@Test
-	public void testStatus() {
+	public void testStatus() throws Exception {
 		// Test error handling on Null Job Id
 		PiazzaResponse response = jobController.getJobStatus(null).getBody();
 		assertTrue(response instanceof ErrorResponse);
