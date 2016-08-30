@@ -192,10 +192,10 @@ public class JobController {
 				// Abort the Job in the Jobs table.
 				abortJobHandler.process(request);
 				// Log the successful Cancellation
-				logger.log(String.format("Successfully cancelled Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
+				logger.log(String.format("Successfully requested cancel Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
 						request.createdBy), PiazzaLogger.INFO);
 				return new ResponseEntity<PiazzaResponse>(
-						new SuccessResponse("Job " + jobId + " was cancelled successfully", "Job Manager"), HttpStatus.OK);
+						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", "Job Manager"), HttpStatus.OK);
 			} else {
 				return new ResponseEntity<PiazzaResponse>(new SuccessResponse(String
 						.format("Could not Abort Job because it is no longer running. The Job reported a status of %s", currentStatus),
@@ -297,6 +297,7 @@ public class JobController {
 	public List<String> getStatuses() {
 		List<String> statuses = new ArrayList<String>();
 		statuses.add(StatusUpdate.STATUS_CANCELLED);
+		statuses.add(StatusUpdate.STATUS_CANCELLING);
 		statuses.add(StatusUpdate.STATUS_ERROR);
 		statuses.add(StatusUpdate.STATUS_FAIL);
 		statuses.add(StatusUpdate.STATUS_PENDING);
@@ -336,6 +337,7 @@ public class JobController {
 		stats.put("pending", getStatusCount(StatusUpdate.STATUS_PENDING));
 		stats.put("submitted", getStatusCount(StatusUpdate.STATUS_SUBMITTED));
 		stats.put("cancelled", getStatusCount(StatusUpdate.STATUS_CANCELLED));
+		stats.put("cancelling", getStatusCount(StatusUpdate.STATUS_CANCELLING));
 		stats.put("activeThreads", threadPoolTaskExecutor.getActiveCount());
 		if (threadPoolTaskExecutor.getThreadPoolExecutor() != null) {
 			stats.put("threadQueue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());

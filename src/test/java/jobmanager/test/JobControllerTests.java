@@ -212,7 +212,7 @@ public class JobControllerTests {
 		List<String> statuses = jobController.getStatuses();
 
 		// Verify
-		assertTrue(statuses.size() == 7);
+		assertTrue(statuses.size() == 8);
 		assertTrue(statuses.contains(StatusUpdate.STATUS_CANCELLED));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_ERROR));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_FAIL));
@@ -220,6 +220,7 @@ public class JobControllerTests {
 		assertTrue(statuses.contains(StatusUpdate.STATUS_RUNNING));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_SUBMITTED));
 		assertTrue(statuses.contains(StatusUpdate.STATUS_SUCCESS));
+		assertTrue(statuses.contains(StatusUpdate.STATUS_CANCELLING));
 	}
 
 	/**

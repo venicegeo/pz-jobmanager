@@ -58,7 +58,7 @@ public class AbortJobHandler {
 		String currentStatus = jobToCancel.status;
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
-			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLED);
+			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLING);
 		} else {
 			String error = String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId());
 			logger.log(error, PiazzaLogger.INFO);
