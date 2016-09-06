@@ -238,7 +238,13 @@ public class MongoAccessor {
 			if (statusUpdate.getStatus().isEmpty() == false) {
 				update.set("status", statusUpdate.getStatus());
 			}
-			getJobCollection().update(DBQuery.is("jobId", jobId), update);
+			// Form the query to update the job matching the ID. Do not update if the Job Status is in a finished state.
+			Query query = DBQuery.is("jobId", jobId)
+					.and(DBQuery.notEquals("status", StatusUpdate.STATUS_CANCELLED).and(
+							DBQuery.notEquals("status", StatusUpdate.STATUS_ERROR).and(DBQuery.notEquals("status", StatusUpdate.STATUS_FAIL)
+									.and(DBQuery.notEquals("status", StatusUpdate.STATUS_SUCCESS)))));
+			// Commit
+			getJobCollection().update(query, update);
 		}
 	}
 
