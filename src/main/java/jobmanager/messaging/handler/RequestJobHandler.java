@@ -77,7 +77,6 @@ public class RequestJobHandler {
 	 * @param jobId
 	 *            the Job Id
 	 */
-	@Async
 	public void process(PiazzaJobRequest jobRequest, String jobId) {
 		try {
 			Job job = new Job(jobRequest, jobId);
