@@ -57,6 +57,8 @@ public class MongoAccessor {
 	private String DATABASE_NAME;
 	@Value("${mongo.db.collection.name}")
 	private String JOB_COLLECTION_NAME;
+	@Value("${mongo.thread.multiplier}")
+	private int mongoThreadMultiplier;
 	private MongoClient mongoClient;
 
 	public MongoAccessor() {
@@ -65,7 +67,7 @@ public class MongoAccessor {
 	@PostConstruct
 	private void initialize() {
 		try {
-			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI));
+			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI + "?waitQueueMultiple=" + mongoThreadMultiplier));
 		} catch (Exception exception) {
 			System.out.println("Error connecting to MongoDB Instance.");
 			exception.printStackTrace();
