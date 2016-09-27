@@ -101,6 +101,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
+    	<sonar.exclusions>**/Application.java, **/MongoAccessor.java</sonar.exclusions>
 	</properties>
 
 	<profiles>
