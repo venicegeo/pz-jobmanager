@@ -36,11 +36,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestClientException;
 
 import jobmanager.controller.JobController;
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
+import jobmanager.messaging.handler.RequestJobHandler;
 import model.job.Job;
 import model.job.JobProgress;
 import model.job.type.AbortJob;
@@ -74,6 +76,8 @@ public class JobControllerTests {
 	private AbortJobHandler abortJobHandler;
 	@Mock
 	private RepeatJobHandler repeatJobHandler;
+	@Mock
+	private RequestJobHandler requestJobHandler;
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@InjectMocks
@@ -239,5 +243,26 @@ public class JobControllerTests {
 		assertTrue(entity.getStatusCode().equals(HttpStatus.OK));
 		Map<String, Object> stats = entity.getBody();
 		assertTrue(stats.keySet().size() >= 8);
+	}
+
+	/**
+	 * Tests the endpoint to request a job
+	 */
+	@Test
+	public void testRequestJob() throws Exception {
+		// Mock
+		when(uuidFactory.getUUID()).thenReturn("123456");
+		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
+		mockRequest.jobType = new AbortJob("123456");
+
+		// Test
+		ResponseEntity<PiazzaResponse> response = jobController.requestJob(mockRequest, "");
+		assertTrue(response.getBody() instanceof JobResponse);
+		assertTrue(((JobResponse) response.getBody()).data.getJobId().equals("123456"));
+
+		// Test an Error
+		Mockito.doThrow(new RestClientException("Error")).when(uuidFactory).getUUID();
+		response = jobController.requestJob(mockRequest, "");
+		assertTrue(response.getBody() instanceof ErrorResponse);
 	}
 }
