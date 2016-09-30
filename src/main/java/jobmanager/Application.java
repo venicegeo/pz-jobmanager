@@ -18,6 +18,8 @@ package jobmanager;
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -32,6 +34,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import jobmanager.database.MongoAccessor;
+
 @SpringBootApplication
 @Configuration
 @EnableAsync
@@ -43,13 +47,15 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	@Value("${thread.count.limit}")
 	private int threadCountLimit;
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
+	
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(Application.class);
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(Application.class, args); //NOSONAR
 	}
 
 	@Override
@@ -70,7 +76,7 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 			public void handleUncaughtException(Throwable ex, Method method, Object... params) {
 				String error = String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(),
 						method.getName());
-				System.out.println(error);
+				LOGGER.error(error);
 			}
 		};
 	}

@@ -27,6 +27,8 @@ import org.mongojack.DBSort;
 import org.mongojack.DBUpdate;
 import org.mongojack.DBUpdate.Builder;
 import org.mongojack.JacksonDBCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -42,6 +44,7 @@ import model.job.JobProgress;
 import model.response.JobListResponse;
 import model.response.Pagination;
 import model.status.StatusUpdate;
+import util.PiazzaLogger;
 
 /**
  * Helper class to interact with and access the Mongo instance.
@@ -61,6 +64,8 @@ public class MongoAccessor {
 	private int mongoThreadMultiplier;
 	private MongoClient mongoClient;
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
+	
 	public MongoAccessor() {
 	}
 
@@ -69,8 +74,7 @@ public class MongoAccessor {
 		try {
 			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI + "?waitQueueMultiple=" + mongoThreadMultiplier));
 		} catch (Exception exception) {
-			System.out.println("Error connecting to MongoDB Instance.");
-			exception.printStackTrace();
+			LOGGER.error(String.format("Error connecting to MongoDB Instance. %s", exception.getMessage()));
 		}
 	}
 

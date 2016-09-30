@@ -202,7 +202,7 @@ public class JobController {
 						"Job Manager"), HttpStatus.OK);
 			}
 		} catch (Exception exception) {
-			logger.log(String.format("Error Cancelling Job: ", exception.getMessage()), PiazzaLogger.ERROR);
+			logger.log(String.format("Error Cancelling Job: %s", exception.getMessage()), PiazzaLogger.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -239,8 +239,8 @@ public class JobController {
 			// Return the Job Id
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Repeating Job: ", exception.getMessage()), PiazzaLogger.ERROR);
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: " + exception.getMessage(), "Job Manager"),
+			logger.log(String.format("Error Repeating Job: %s", exception.getMessage()), PiazzaLogger.ERROR);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
