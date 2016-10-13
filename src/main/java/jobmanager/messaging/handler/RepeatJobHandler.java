@@ -15,15 +15,18 @@
  **/
 package jobmanager.messaging.handler;
 
-import messaging.job.JobMessageFactory;
-import model.job.Job;
-import model.request.PiazzaJobRequest;
-
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import exception.PiazzaJobException;
+import messaging.job.JobMessageFactory;
+import model.job.Job;
+import model.request.PiazzaJobRequest;
 
 /**
  * Handles the request for Repeating a Job in the Job Table.
@@ -55,7 +58,7 @@ public class RepeatJobHandler {
 	 *            The request, detailing the user and the job to be repeated.
 	 */
 	@Async
-	public void process(Job job, String newRepeatJobId) throws Exception {
+	public void process(Job job, String newRepeatJobId) throws JsonProcessingException, PiazzaJobException {
 		// Create a new JobRequest object. The Submitter will be the user
 		// who requested the Job to be repeated. The Job Type will be the
 		// Type of the Job that is to be repeated.

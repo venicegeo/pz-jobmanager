@@ -17,6 +17,8 @@ package jobmanager.messaging.handler;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -49,6 +51,7 @@ public class RequestJobHandler {
 	@Value("${SPACE}")
 	private String SPACE;
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(RequestJobHandler.class);
 	private Producer<String, String> producer;
 	ObjectMapper mapper = new ObjectMapper();
 
@@ -78,8 +81,10 @@ public class RequestJobHandler {
 			String jobId = consumerRecord.key();
 			process(jobRequest, jobId);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
-					consumerRecord.key(), exception.getMessage()), PiazzaLogger.ERROR);
+			String error = String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
+					consumerRecord.key(), exception.getMessage());
+			LOGGER.error(error, exception);
+			logger.log(error, PiazzaLogger.ERROR);
 		}
 	}
 
@@ -111,7 +116,9 @@ public class RequestJobHandler {
 			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Processing Request-Job with error %s", exception.getMessage()), PiazzaLogger.ERROR);
+			String error = String.format("Error Processing Request-Job with error %s", exception.getMessage());
+			LOGGER.error(error, exception);
+			logger.log(error, PiazzaLogger.ERROR);
 		}
 	}
 }

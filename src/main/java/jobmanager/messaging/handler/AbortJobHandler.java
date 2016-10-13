@@ -17,7 +17,9 @@ package jobmanager.messaging.handler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 
+import exception.PiazzaJobException;
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
@@ -44,15 +46,15 @@ public class AbortJobHandler {
 	 * @param request
 	 *            Job request.
 	 */
-	public void process(PiazzaJobRequest request) throws Exception {
+	public void process(PiazzaJobRequest request) throws ResourceAccessException, InterruptedException, PiazzaJobException {
 		AbortJob abortJob = (AbortJob) request.jobType;
 		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
 		if (jobToCancel == null) {
-			throw new Exception(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
+			throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
 		}
 		// Ensure the user has permission to cancel the Job.
 		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {
-			throw new Exception(
+			throw new PiazzaJobException(
 					String.format("Could not Abort Job %s because it was not requested by the originating user.", abortJob.getJobId()));
 		}
 		String currentStatus = jobToCancel.status;

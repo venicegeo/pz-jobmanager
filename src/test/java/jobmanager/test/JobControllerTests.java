@@ -38,6 +38,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestClientException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import exception.PiazzaJobException;
 import jobmanager.controller.JobController;
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
@@ -158,7 +161,7 @@ public class JobControllerTests {
 		assertTrue(response.getStatusCode().compareTo(HttpStatus.OK) == 0);
 
 		// Test Exception
-		Mockito.doThrow(new Exception("Couldn't Abort")).when(abortJobHandler).process(any(PiazzaJobRequest.class));
+		Mockito.doThrow(new PiazzaJobException("Couldn't Abort")).when(abortJobHandler).process(any(PiazzaJobRequest.class));
 		response = jobController.abortJob(mockRequest);
 		assertTrue(response.getBody() instanceof ErrorResponse);
 		assertTrue(((ErrorResponse) response.getBody()).message.contains("Couldn't Abort"));
@@ -185,7 +188,7 @@ public class JobControllerTests {
 		assertTrue(((JobResponse) response).data.getJobId().equals("123456"));
 
 		// Test Exception
-		Mockito.doThrow(new Exception("Can't Repeat")).when(repeatJobHandler).process(any(Job.class), any(String.class));
+		Mockito.doThrow(new PiazzaJobException("Error")).when(repeatJobHandler).process(any(Job.class), any(String.class));
 		response = jobController.repeatJob(new PiazzaJobRequest()).getBody();
 		assertTrue(response instanceof ErrorResponse);
 	}

@@ -24,6 +24,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.kafka.clients.producer.Producer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import exception.InvalidInputException;
 import jobmanager.database.MongoAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
@@ -82,6 +85,8 @@ public class JobController {
 	private static final String DEFAULT_PAGE_SIZE = "10";
 	private static final String DEFAULT_PAGE = "0";
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(JobController.class);
+
 	/**
 	 * Initializing the Kafka Producer on Controller startup.
 	 */
@@ -119,7 +124,7 @@ public class JobController {
 	public ResponseEntity<PiazzaResponse> getJobStatus(@PathVariable(value = "jobId") String jobId) {
 		try {
 			if (jobId.isEmpty()) {
-				throw new Exception("No Job Id specified.");
+				throw new InvalidInputException("No Job Id specified.");
 			}
 			// Query for the Job Id
 			Job job = accessor.getJobById(jobId);
@@ -133,7 +138,9 @@ public class JobController {
 			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
 			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
-			logger.log(String.format("Error fetching a Job %s: %s", jobId, exception.getMessage()), PiazzaLogger.ERROR);
+			String error = String.format("Error fetching a Job %s: %s", jobId, exception.getMessage());
+			logger.log(error, PiazzaLogger.ERROR);
+			LOGGER.error(error, exception);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -164,6 +171,7 @@ public class JobController {
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(jobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
+			LOGGER.error(error, exception);
 			logger.log(error, PiazzaLogger.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -202,7 +210,9 @@ public class JobController {
 						"Job Manager"), HttpStatus.OK);
 			}
 		} catch (Exception exception) {
-			logger.log(String.format("Error Cancelling Job: %s", exception.getMessage()), PiazzaLogger.ERROR);
+			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
+			LOGGER.error(error, exception);
+			logger.log(error, PiazzaLogger.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -239,7 +249,9 @@ public class JobController {
 			// Return the Job Id
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Repeating Job: %s", exception.getMessage()), PiazzaLogger.ERROR);
+			String error = String.format("Error Repeating Job: %s", exception.getMessage());
+			LOGGER.error(error, exception);
+			logger.log(error, PiazzaLogger.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}

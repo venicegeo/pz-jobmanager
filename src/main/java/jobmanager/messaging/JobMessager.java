@@ -26,6 +26,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -66,6 +68,8 @@ public class JobMessager {
 	private Producer<String, String> producer;
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+
+	private final static Logger LOGGER = LoggerFactory.getLogger(JobMessager.class);
 
 	/**
 	 * Expected for Component instantiation
@@ -114,8 +118,10 @@ public class JobMessager {
 					try {
 						processMessage(consumerRecord);
 					} catch (Exception exception) {
-						logger.log(String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
-								consumerRecord.topic(), exception.getMessage()), PiazzaLogger.ERROR);
+						String error = String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
+								consumerRecord.topic(), exception.getMessage());
+						LOGGER.error(error, exception);
+						logger.log(error, PiazzaLogger.ERROR);
 					}
 				}
 			}
@@ -144,7 +150,7 @@ public class JobMessager {
 	 * @param consumerRecord
 	 *            The message to process.
 	 */
-	public void processMessage(ConsumerRecord<String, String> consumerRecord) throws Exception {
+	public void processMessage(ConsumerRecord<String, String> consumerRecord) {
 		// Delegate by Topic
 		if (consumerRecord.topic().equalsIgnoreCase(UPDATE_JOB_TOPIC_NAME)) {
 			updateStatusHandler.process(consumerRecord);

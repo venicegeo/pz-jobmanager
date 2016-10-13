@@ -44,7 +44,6 @@ import model.job.JobProgress;
 import model.response.JobListResponse;
 import model.response.Pagination;
 import model.status.StatusUpdate;
-import util.PiazzaLogger;
 
 /**
  * Helper class to interact with and access the Mongo instance.
@@ -65,7 +64,7 @@ public class MongoAccessor {
 	private MongoClient mongoClient;
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
-	
+
 	public MongoAccessor() {
 	}
 
@@ -74,7 +73,7 @@ public class MongoAccessor {
 		try {
 			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI + "?waitQueueMultiple=" + mongoThreadMultiplier));
 		} catch (Exception exception) {
-			LOGGER.error(String.format("Error connecting to MongoDB Instance. %s", exception.getMessage()));
+			LOGGER.error(String.format("Error connecting to MongoDB Instance. %s", exception.getMessage()), exception);
 		}
 	}
 
@@ -142,6 +141,7 @@ public class MongoAccessor {
 				job = getJobCollection().findOne(query);
 			}
 		} catch (MongoTimeoutException mte) {
+			LOGGER.error(mte.getMessage(), mte);
 			throw new ResourceAccessException("MongoDB instance not available.");
 		}
 
@@ -229,7 +229,7 @@ public class MongoAccessor {
 	 * @param statusUpdate
 	 *            The Status Update information
 	 */
-	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) throws Exception {
+	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) throws ResourceAccessException, InterruptedException {
 		// Determine if the Result is part of the status. If so, then this will be an entire delete/re-entry of the Job
 		// object into the database.
 		if (statusUpdate.getResult() != null) {
@@ -277,7 +277,7 @@ public class MongoAccessor {
 	 * @param statusUpdate
 	 *            The Status Update with the Result (and any other Status information)
 	 */
-	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate) throws Exception {
+	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate) throws ResourceAccessException, InterruptedException {
 		// Get the existing Job and all of its properties
 		Job job = getJobById(jobId);
 		// Remove existing Job

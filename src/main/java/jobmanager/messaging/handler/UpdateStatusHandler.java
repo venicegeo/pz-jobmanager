@@ -16,6 +16,8 @@
 package jobmanager.messaging.handler;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -39,6 +41,7 @@ public class UpdateStatusHandler {
 	@Autowired
 	private MongoAccessor accessor;
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(UpdateStatusHandler.class);
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Async
@@ -55,8 +58,9 @@ public class UpdateStatusHandler {
 			logger.log(String.format("Processed Update Status for Job %s with Status %s.", consumerRecord.key(), statusUpdate.getStatus()),
 					PiazzaLogger.INFO);
 		} catch (Exception exception) {
-			logger.log(String.format("Error Updating Status for Job %s with error %s", consumerRecord.key(), exception.getMessage()),
-					PiazzaLogger.ERROR);
+			String error = String.format("Error Updating Status for Job %s with error %s", consumerRecord.key(), exception.getMessage());
+			LOGGER.error(error, exception);
+			logger.log(error, PiazzaLogger.ERROR);
 		}
 	}
 }
