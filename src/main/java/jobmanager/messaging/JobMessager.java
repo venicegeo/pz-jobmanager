@@ -37,6 +37,7 @@ import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
 import messaging.job.JobMessageFactory;
 import messaging.job.KafkaClientFactory;
+import model.logger.Severity;
 import util.PiazzaLogger;
 
 /**
@@ -109,7 +110,7 @@ public class JobMessager {
 			consumer.subscribe(topics);
 			// Log that we are listening
 			logger.log(String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_ADDRESS, topics.toString()),
-					PiazzaLogger.INFO);
+					Severity.INFORMATIONAL);
 			// Continuously poll for these topics
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
@@ -121,12 +122,12 @@ public class JobMessager {
 						String error = String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
 								consumerRecord.topic(), exception.getMessage());
 						LOGGER.error(error, exception);
-						logger.log(error, PiazzaLogger.ERROR);
+						logger.log(error, Severity.ERROR);
 					}
 				}
 			}
 		} catch (WakeupException exception) {
-			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()), PiazzaLogger.FATAL);
+			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()), Severity.ERROR);
 			// Ignore exception if closing
 			if (!closed.get()) {
 				throw exception;
@@ -157,7 +158,7 @@ public class JobMessager {
 		} else if (consumerRecord.topic().equalsIgnoreCase(REQUEST_JOB_TOPIC_NAME)) {
 			requestJobHandler.process(consumerRecord);
 		} else {
-			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()), PiazzaLogger.WARNING);
+			logger.log(String.format("Received a Topic that could not be processed: %s", consumerRecord.topic()), Severity.WARNING);
 		}
 	}
 }

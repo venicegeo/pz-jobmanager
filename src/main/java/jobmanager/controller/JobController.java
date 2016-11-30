@@ -48,6 +48,8 @@ import messaging.job.KafkaClientFactory;
 import model.job.Job;
 import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
+import model.logger.AuditElement;
+import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import model.response.ErrorResponse;
 import model.response.JobListResponse;
@@ -130,16 +132,17 @@ public class JobController {
 			Job job = accessor.getJobById(jobId);
 			// If no Job was found.
 			if (job == null) {
-				logger.log(String.format("Job not found for requested Id %s", jobId), PiazzaLogger.WARNING);
+				logger.log(String.format("Job not found for requested Id %s", jobId), Severity.WARNING);
 				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
 						HttpStatus.NOT_FOUND);
 			}
 			// Return Job Status
-			logger.log(String.format("Returning Job Status for %s", jobId), PiazzaLogger.INFO);
+			logger.log(String.format("Returning Job Status for %s", jobId), Severity.INFORMATIONAL,
+					new AuditElement("jobmanager", "readJob", jobId));
 			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error fetching a Job %s: %s", jobId, exception.getMessage());
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 			LOGGER.error(error, exception);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
@@ -172,7 +175,7 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -200,8 +203,8 @@ public class JobController {
 				// Abort the Job in the Jobs table.
 				abortJobHandler.process(request);
 				// Log the successful Cancellation
-				logger.log(String.format("Successfully requested cancel Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
-						request.createdBy), PiazzaLogger.INFO);
+				logger.log(String.format("Successfully indexed Cancelled Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
+						request.createdBy), Severity.INFORMATIONAL, new AuditElement("jobmanager", "abortJob", jobId));
 				return new ResponseEntity<PiazzaResponse>(
 						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", "Job Manager"), HttpStatus.OK);
 			} else {
@@ -212,7 +215,7 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -243,15 +246,17 @@ public class JobController {
 			repeatJobHandler.process(jobToRepeat, newJobId);
 
 			// Log the successful Repetition of the Job
-			logger.log(String.format("Successfully created a Repeat Job under Id %s for original Job Id %s by user %s", newJobId,
-					((RepeatJob) request.jobType).getJobId(), request.createdBy), PiazzaLogger.INFO);
+			logger.log(
+					String.format("Successfully created a Repeat Job under Id %s for original Job Id %s by user %s", newJobId,
+							((RepeatJob) request.jobType).getJobId(), request.createdBy),
+					Severity.INFORMATIONAL, new AuditElement(request.createdBy, "repeatedJob", ((RepeatJob) request.jobType).getJobId()));
 
 			// Return the Job Id
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Repeating Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -281,6 +286,7 @@ public class JobController {
 			order = "asc";
 		}
 		// Get and return
+		logger.log("Looking up Job Query", Severity.INFORMATIONAL, new AuditElement("jobmanager", "queryingJobs", ""));
 		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), order, sortBy, status, userName);
 	}
 

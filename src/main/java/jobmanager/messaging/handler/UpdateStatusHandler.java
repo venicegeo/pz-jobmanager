@@ -25,6 +25,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jobmanager.database.MongoAccessor;
+import model.logger.AuditElement;
+import model.logger.Severity;
 import model.status.StatusUpdate;
 import util.PiazzaLogger;
 
@@ -56,11 +58,11 @@ public class UpdateStatusHandler {
 
 			// Log success
 			logger.log(String.format("Processed Update Status for Job %s with Status %s.", consumerRecord.key(), statusUpdate.getStatus()),
-					PiazzaLogger.INFO);
+					Severity.INFORMATIONAL, new AuditElement("jobmanager", "updatedJobStatus", consumerRecord.key()));
 		} catch (Exception exception) {
 			String error = String.format("Error Updating Status for Job %s with error %s", consumerRecord.key(), exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 		}
 	}
 }

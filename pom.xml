@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>org.venice.piazza</groupId>
 			<artifactId>pz-jobcommon</artifactId>
-			<version>LATEST</version>
+			<version>Sprint06-240-g707d71a</version>
 		</dependency>
 
 		<dependency>
@@ -101,7 +101,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-    	<!-- sonar.exclusions>**/Application.java, **/MongoAccessor.java</sonar.exclusions -->
+		<!-- sonar.exclusions>**/Application.java, **/MongoAccessor.java</sonar.exclusions -->
 	</properties>
 
 	<profiles>

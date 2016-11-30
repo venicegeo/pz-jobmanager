@@ -23,6 +23,7 @@ import exception.PiazzaJobException;
 import jobmanager.database.MongoAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
+import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
 import util.PiazzaLogger;
@@ -63,7 +64,7 @@ public class AbortJobHandler {
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLING);
 		} else {
 			String error = String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId());
-			logger.log(error, PiazzaLogger.INFO);
+			logger.log(error, Severity.INFORMATIONAL);
 		}
 	}
 }
