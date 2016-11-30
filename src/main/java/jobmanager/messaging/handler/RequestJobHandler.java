@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jobmanager.database.MongoAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
+import model.logger.AuditElement;
+import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import util.PiazzaLogger;
 import util.UUIDFactory;
@@ -84,7 +86,7 @@ public class RequestJobHandler {
 			String error = String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
 					consumerRecord.key(), exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 		}
 	}
 
@@ -114,11 +116,11 @@ public class RequestJobHandler {
 			// listen to.
 			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE));
 			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
-					PiazzaLogger.INFO);
+					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
 		} catch (Exception exception) {
 			String error = String.format("Error Processing Request-Job with error %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, PiazzaLogger.ERROR);
+			logger.log(error, Severity.ERROR);
 		}
 	}
 }
