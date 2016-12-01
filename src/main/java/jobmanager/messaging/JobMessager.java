@@ -37,6 +37,7 @@ import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
 import messaging.job.JobMessageFactory;
 import messaging.job.KafkaClientFactory;
+import model.logger.AuditElement;
 import model.logger.Severity;
 import util.PiazzaLogger;
 
@@ -122,7 +123,7 @@ public class JobMessager {
 						String error = String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
 								consumerRecord.topic(), exception.getMessage());
 						LOGGER.error(error, exception);
-						logger.log(error, Severity.ERROR);
+						logger.log(error, Severity.ERROR, new AuditElement("jobmanager", "errorProcessingKafkaJob", consumerRecord.key()));
 					}
 				}
 			}

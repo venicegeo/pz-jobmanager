@@ -142,7 +142,7 @@ public class JobController {
 			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error fetching a Job %s: %s", jobId, exception.getMessage());
-			logger.log(error, Severity.ERROR);
+			logger.log(error, Severity.ERROR, new AuditElement("jobmanager", "failedToAccessJob", jobId));
 			LOGGER.error(error, exception);
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
@@ -175,7 +175,7 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, Severity.ERROR);
+			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorRequestingJob", jobId));
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -215,7 +215,7 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, Severity.ERROR);
+			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorCancellingJob", ((AbortJob) request.jobType).getJobId()));
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -256,7 +256,7 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Repeating Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, Severity.ERROR);
+			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorProcessingRepeatJob", ""));
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), "Job Manager"),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
