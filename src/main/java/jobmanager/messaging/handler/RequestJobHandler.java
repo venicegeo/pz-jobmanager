@@ -52,6 +52,8 @@ public class RequestJobHandler {
 	private MongoAccessor accessor;
 	@Value("${SPACE}")
 	private String SPACE;
+	@Value("${logger.console.job.payloads:false}")
+	private Boolean logJobPayloadsToConsole;
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(RequestJobHandler.class);
 	private Producer<String, String> producer;
@@ -115,8 +117,13 @@ public class RequestJobHandler {
 			// topic name of the Job type for all workers to
 			// listen to.
 			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE));
+			// Log default to Piazza Logger
 			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
+			// If extended logging is enabled, then log the payload of the job.
+			if (logJobPayloadsToConsole.booleanValue()) {
+				LOGGER.info(String.format("Job Id %s payload was: %s", job.getJobId(), new ObjectMapper().writeValueAsString(job)));
+			}
 		} catch (Exception exception) {
 			String error = String.format("Error Processing Request-Job with error %s", exception.getMessage());
 			LOGGER.error(error, exception);
