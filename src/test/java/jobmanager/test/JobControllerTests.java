@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -37,8 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestClientException;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import exception.PiazzaJobException;
 import jobmanager.controller.JobController;
@@ -102,7 +101,7 @@ public class JobControllerTests {
 		mockJob.status = StatusUpdate.STATUS_RUNNING;
 		mockJob.progress = new JobProgress(75);
 		mockJob.jobType = new IngestJob();
-
+		mockJob.createdOn = new DateTime();
 		// Mock a list of Jobs
 		mockJobs = new ArrayList<Job>();
 		mockJobs.add(mockJob);
