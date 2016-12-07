@@ -17,6 +17,7 @@ package jobmanager.messaging.handler;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,9 +117,10 @@ public class RequestJobHandler {
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
-			producer.send(JobMessageFactory.getWorkerJobCreateMessage(job, SPACE));
+			ProducerRecord<String, String> message = JobMessageFactory.getWorkerJobCreateMessage(job, SPACE);
+			producer.send(message);
 			// Log default to Piazza Logger
-			logger.log(String.format("Relayed Job Id %s for Type %s", job.getJobId(), job.getJobType().getClass().getSimpleName()),
+			logger.log(String.format("Relayed Job Id %s for Type %s on Kafka topic %s", job.getJobId(), job.getJobType().getClass().getSimpleName(), message.topic()),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
 			// If extended logging is enabled, then log the payload of the job.
 			if (logJobPayloadsToConsole.booleanValue()) {
