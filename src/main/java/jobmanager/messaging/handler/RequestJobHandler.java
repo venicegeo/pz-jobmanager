@@ -118,7 +118,7 @@ public class RequestJobHandler {
 			// topic name of the Job type for all workers to
 			// listen to.
 			ProducerRecord<String, String> message = JobMessageFactory.getWorkerJobCreateMessage(job, SPACE);
-			producer.send(message).get();
+			producer.send(message);
 			// Log default to Piazza Logger
 			logger.log(String.format("Relayed Job Id %s for Type %s on Kafka topic %s", job.getJobId(), job.getJobType().getClass().getSimpleName(), message.topic()),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
