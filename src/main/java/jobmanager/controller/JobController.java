@@ -360,6 +360,9 @@ public class JobController {
 		if (threadPoolTaskExecutor.getThreadPoolExecutor() != null) {
 			stats.put("threadQueue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
 		}
+		if ((logger != null) && (logger.getExecutor() != null)) {
+			status.put("logThreadQueue", logger.getExecutor().getThreadPoolExecutor().getQueue().size());
+		}
 
 		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
 	}
