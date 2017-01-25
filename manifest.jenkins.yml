@@ -1,15 +1,14 @@
 applications:
 - name: pz-jobmanager
   host: pz-jobmanager
-  path: pz-jobmanager.jar
-  buildpack: 'https://github.com/cloudfoundry/java-buildpack.git#v3.9'
+  path: 'target/piazza-jobmanager-1.0.0.jar'
+  buildpack: 'java_buildpack_offline_3_12'
   memory: 1024M
   instances: 1
   timeout: 80
   services:
     - pz-kafka
     - pz-mongodb
-    - pz-elasticsearch
   env:
     SPRING_PROFILES_ACTIVE: cloud
     JBP_CONFIG_OPEN_JDK_JRE: '{ memory_calculator : { memory_sizes : { heap : 512m } } }'
