@@ -76,7 +76,7 @@ public class MessagerTests {
 		// Mock the values for the Topic names
 		ReflectionTestUtils.setField(jobMessager, "UPDATE_JOB_TOPIC_NAME", "Update-Job");
 		ReflectionTestUtils.setField(jobMessager, "REQUEST_JOB_TOPIC_NAME", "Request-Job");
-		ReflectionTestUtils.setField(jobMessager, "KAFKA_ADDRESS", "localhost:9092");
+		ReflectionTestUtils.setField(jobMessager, "KAFKA_HOSTS", "localhost:9092");
 		ReflectionTestUtils.setField(jobMessager, "SPACE", "unit-test");
 		ReflectionTestUtils.setField(jobMessager, "KAFKA_GROUP", "job-unit-test");
 	}

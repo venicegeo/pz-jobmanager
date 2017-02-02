@@ -64,7 +64,7 @@ import util.UUIDFactory;
 @RestController
 public class JobController {
 	@Value("${vcap.services.pz-kafka.credentials.host}")
-	private String KAFKA_ADDRESS;
+	private String KAFKA_HOSTS;
 
 	@Autowired
 	private PiazzaLogger logger;
@@ -94,7 +94,7 @@ public class JobController {
 	 */
 	@PostConstruct
 	public void init() {
-		producer = KafkaClientFactory.getProducer(KAFKA_ADDRESS.split(":")[0], KAFKA_ADDRESS.split(":")[1]);
+		producer = KafkaClientFactory.getProducer(KAFKA_HOSTS);
 	}
 
 	@PreDestroy
