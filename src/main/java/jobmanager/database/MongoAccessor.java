@@ -36,6 +36,7 @@ import org.springframework.web.client.ResourceAccessException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoTimeoutException;
 
@@ -71,7 +72,9 @@ public class MongoAccessor {
 	@PostConstruct
 	private void initialize() {
 		try {
-			mongoClient = new MongoClient(new MongoClientURI(DATABASE_URI + "?waitQueueMultiple=" + mongoThreadMultiplier));
+			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+			mongoClient = new MongoClient(
+					new MongoClientURI(DATABASE_URI, builder.threadsAllowedToBlockForConnectionMultiplier(mongoThreadMultiplier)));
 		} catch (Exception exception) {
 			LOGGER.error(String.format("Error connecting to MongoDB Instance. %s", exception.getMessage()), exception);
 		}
@@ -277,7 +280,8 @@ public class MongoAccessor {
 	 * @param statusUpdate
 	 *            The Status Update with the Result (and any other Status information)
 	 */
-	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate) throws ResourceAccessException, InterruptedException {
+	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate)
+			throws ResourceAccessException, InterruptedException {
 		// Get the existing Job and all of its properties
 		Job job = getJobById(jobId);
 		// Remove existing Job
