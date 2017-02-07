@@ -15,6 +15,7 @@
  **/
 package jobmanager.database;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -29,16 +30,20 @@ import org.mongojack.DBUpdate.Builder;
 import org.mongojack.JacksonDBCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoClientURI;
+import com.mongodb.MongoCredential;
 import com.mongodb.MongoTimeoutException;
+import com.mongodb.ServerAddress;
 
 import model.job.Job;
 import model.job.JobProgress;
@@ -58,11 +63,22 @@ public class MongoAccessor {
 	private String DATABASE_URI;
 	@Value("${vcap.services.pz-mongodb.credentials.database}")
 	private String DATABASE_NAME;
+	@Value("${vcap.services.pz-mongodb.credentials.host}")
+	private String DATABASE_HOST;
+	@Value("${vcap.services.pz-mongodb.credentials.port}")
+	private int DATABASE_PORT;
+	@Value("${vcap.services.pz-mongodb.credentials.username:}")
+	private String DATABASE_USERNAME;
+	@Value("${vcap.services.pz-mongodb.credentials.password:}")
+	private String DATABASE_CREDENTIAL;
 	@Value("${mongo.db.collection.name}")
 	private String JOB_COLLECTION_NAME;
 	@Value("${mongo.thread.multiplier}")
 	private int mongoThreadMultiplier;
 	private MongoClient mongoClient;
+
+	@Autowired
+	private Environment environment;
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
 
@@ -73,10 +89,25 @@ public class MongoAccessor {
 	private void initialize() {
 		try {
 			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-			mongoClient = new MongoClient(
-					new MongoClientURI(DATABASE_URI, builder.threadsAllowedToBlockForConnectionMultiplier(mongoThreadMultiplier)));
+			// Enable SSL if the `mongossl` Profile is enabled
+			if (Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> env.equalsIgnoreCase("mongossl"))) {
+				builder.sslEnabled(true);
+				builder.sslInvalidHostNameAllowed(true);
+			}
+			// If a username and password are provided, then associate these credentials with the connection
+			if ((!StringUtils.isEmpty(DATABASE_USERNAME)) && (!StringUtils.isEmpty(DATABASE_CREDENTIAL))) {
+				mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, DATABASE_PORT),
+						Arrays.asList(
+								MongoCredential.createCredential(DATABASE_USERNAME, DATABASE_NAME, DATABASE_CREDENTIAL.toCharArray())),
+						builder.threadsAllowedToBlockForConnectionMultiplier(mongoThreadMultiplier).build());
+			} else {
+				mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, DATABASE_PORT),
+						builder.threadsAllowedToBlockForConnectionMultiplier(mongoThreadMultiplier).build());
+			}
+
 		} catch (Exception exception) {
 			LOGGER.error(String.format("Error connecting to MongoDB Instance. %s", exception.getMessage()), exception);
+
 		}
 	}
 
