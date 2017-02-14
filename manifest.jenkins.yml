@@ -1,8 +1,7 @@
 applications:
 - name: pz-jobmanager
   host: pz-jobmanager
-  path: 'target/piazza-jobmanager-1.0.0.jar'
-  buildpack: 'java_buildpack_offline_3_12'
+  path: pz-jobmanager.jar
   memory: 1024M
   instances: 1
   timeout: 80
