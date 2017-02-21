@@ -208,9 +208,9 @@ public class JobController {
 				return new ResponseEntity<PiazzaResponse>(
 						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", "Job Manager"), HttpStatus.OK);
 			} else {
-				return new ResponseEntity<PiazzaResponse>(new SuccessResponse(String
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String
 						.format("Could not Abort Job because it is no longer running. The Job reported a status of %s", currentStatus),
-						"Job Manager"), HttpStatus.OK);
+						"Job Manager"), HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
