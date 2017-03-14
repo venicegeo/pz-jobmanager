@@ -60,7 +60,7 @@ public class JobMessager {
 	private RequestJobHandler requestJobHandler;
 
 	@Value("${vcap.services.pz-kafka.credentials.host}")
-	private String KAFKA_ADDRESS;
+	private String KAFKA_HOSTS;
 	@Value("${SPACE}")
 	private String SPACE;
 	@Value("#{'${kafka.group}' + '-' + '${SPACE}'}")
@@ -84,11 +84,9 @@ public class JobMessager {
 		// Initialize the topics
 		UPDATE_JOB_TOPIC_NAME = String.format("%s-%s", JobMessageFactory.UPDATE_JOB_TOPIC_NAME, SPACE);
 		REQUEST_JOB_TOPIC_NAME = String.format("%s-%s", "Request-Job", SPACE);
-		String KAFKA_HOST = KAFKA_ADDRESS.split(":")[0];
-		String KAFKA_PORT = KAFKA_ADDRESS.split(":")[1];
 		// Initialize the Consumer and Producer
-		consumer = KafkaClientFactory.getConsumer(KAFKA_HOST, KAFKA_PORT, KAFKA_GROUP);
-		producer = KafkaClientFactory.getProducer(KAFKA_HOST, KAFKA_PORT);
+		consumer = KafkaClientFactory.getConsumer(KAFKA_HOSTS, KAFKA_GROUP);
+		producer = KafkaClientFactory.getProducer(KAFKA_HOSTS);
 		// Share the producer
 		repeatJobHandler.setProducer(producer);
 		requestJobHandler.setProducer(producer);
@@ -110,7 +108,7 @@ public class JobMessager {
 			List<String> topics = Arrays.asList(UPDATE_JOB_TOPIC_NAME, REQUEST_JOB_TOPIC_NAME);
 			consumer.subscribe(topics);
 			// Log that we are listening
-			logger.log(String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_ADDRESS, topics.toString()),
+			logger.log(String.format("Listening to Kafka at %s and subscribed to topics %s", KAFKA_HOSTS, topics.toString()),
 					Severity.INFORMATIONAL);
 			// Continuously poll for these topics
 			while (!closed.get()) {

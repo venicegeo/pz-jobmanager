@@ -64,7 +64,7 @@ import util.UUIDFactory;
 @RestController
 public class JobController {
 	@Value("${vcap.services.pz-kafka.credentials.host}")
-	private String KAFKA_ADDRESS;
+	private String KAFKA_HOSTS;
 
 	@Autowired
 	private PiazzaLogger logger;
@@ -94,7 +94,7 @@ public class JobController {
 	 */
 	@PostConstruct
 	public void init() {
-		producer = KafkaClientFactory.getProducer(KAFKA_ADDRESS.split(":")[0], KAFKA_ADDRESS.split(":")[1]);
+		producer = KafkaClientFactory.getProducer(KAFKA_HOSTS);
 	}
 
 	@PreDestroy
@@ -208,9 +208,9 @@ public class JobController {
 				return new ResponseEntity<PiazzaResponse>(
 						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", "Job Manager"), HttpStatus.OK);
 			} else {
-				return new ResponseEntity<PiazzaResponse>(new SuccessResponse(String
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String
 						.format("Could not Abort Job because it is no longer running. The Job reported a status of %s", currentStatus),
-						"Job Manager"), HttpStatus.OK);
+						"Job Manager"), HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
