@@ -21,7 +21,8 @@ node {
 
   stage('Archive') {
     // Build
-    sh """sed -i 's,\${env.ARTIFACT_STORAGE_URL},${env.ARTIFACT_STORAGE_URL},g' pom.xml \
+    sh """
+      sed -i 's,\${env.ARTIFACT_STORAGE_URL},${env.ARTIFACT_STORAGE_URL},g' pom.xml
       ${mvn}/bin/mvn clean package -U -Dmaven.repo.local=${root}
       cp ${root}/target/piazza-jobmanager-1.0.0.jar ${root}/pz-jobmanager.jar
     """
