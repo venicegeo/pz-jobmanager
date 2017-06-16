@@ -163,19 +163,20 @@ public class JobController {
 	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
 			@RequestParam(value = "jobId", required = false) String jobId) {
+		
+		// Generate a Job Id if needed
+		final String finalJobId = jobId.isEmpty() ? uuidFactory.getUUID() : jobId;
+		
 		try {
-			// Generate a Job Id if needed
-			if (jobId.isEmpty()) {
-				jobId = uuidFactory.getUUID();
-			}
+
 			// Create the Job and send off the Job Kafka message
-			requestJobHandler.process(request, jobId);
+			requestJobHandler.process(request, finalJobId);
 			// Return to the user the Job Id.
-			return new ResponseEntity<PiazzaResponse>(new JobResponse(jobId), HttpStatus.OK);
+			return new ResponseEntity<PiazzaResponse>(new JobResponse(finalJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
 			LOGGER.error(error, exception);
-			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorRequestingJob", jobId));
+			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorRequestingJob", finalJobId));
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -281,13 +282,20 @@ public class JobController {
 			@RequestParam(value = "sortBy", required = false, defaultValue = "submitted") String sortBy,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "userName", required = false) String userName) {
+		
+		final String finalOrder;
+		
 		// Don't allow for invalid orders
-		if (!(order.equalsIgnoreCase("asc")) && !(order.equalsIgnoreCase("desc"))) {
-			order = "asc";
+		if (!("asc".equalsIgnoreCase(order)) && !("desc".equalsIgnoreCase(order))) {
+			finalOrder = "asc";
 		}
+		else { 
+			finalOrder = order;
+		}
+		
 		// Get and return
 		logger.log("Looking up Job Query", Severity.INFORMATIONAL, new AuditElement("jobmanager", "queryingJobs", ""));
-		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), order, sortBy, status, userName);
+		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), finalOrder, sortBy, status, userName);
 	}
 
 	/**

@@ -123,7 +123,7 @@ public class RequestJobHandler {
 			logger.log(String.format("Relayed Job Id %s for Type %s on Kafka topic %s", job.getJobId(), job.getJobType().getClass().getSimpleName(), message.topic()),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
 			// If extended logging is enabled, then log the payload of the job.
-			if (logJobPayloadsToConsole.booleanValue()) {
+			if (logJobPayloadsToConsole.booleanValue() && LOGGER.isInfoEnabled()) {
 				LOGGER.info(String.format("Job Id %s payload was: %s", job.getJobId(), new ObjectMapper().writeValueAsString(job)));
 			}
 		} catch (Exception exception) {
