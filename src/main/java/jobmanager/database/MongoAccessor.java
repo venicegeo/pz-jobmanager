@@ -90,7 +90,7 @@ public class MongoAccessor {
 		try {
 			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
 			// Enable SSL if the `mongossl` Profile is enabled
-			if (Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> env.equalsIgnoreCase("mongossl"))) {
+			if (Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> "mongossl".equalsIgnoreCase(env))) {
 				builder.sslEnabled(true);
 				builder.sslInvalidHostNameAllowed(true);
 			}
@@ -211,14 +211,14 @@ public class MongoAccessor {
 		DBCursor<Job> cursor = getJobCollection().find(query);
 
 		// Sort and order the Results
-		if (order.equalsIgnoreCase("asc")) {
+		if ("asc".equalsIgnoreCase(order)) {
 			cursor = cursor.sort(DBSort.asc(sortBy));
-		} else if (order.equalsIgnoreCase("desc")) {
+		} else if ("desc".equalsIgnoreCase(order)) {
 			cursor = cursor.sort(DBSort.desc(sortBy));
 		}
 
 		// Get the total count
-		Integer size = new Integer(cursor.size());
+		Integer size = Integer.valueOf(cursor.size());
 
 		// Paginate the results
 		List<Job> jobs = cursor.skip(page * perPage).limit(perPage).toArray();
