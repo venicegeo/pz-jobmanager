@@ -87,8 +87,11 @@ public class JobController {
 	private static final String DEFAULT_PAGE_SIZE = "10";
 	private static final String DEFAULT_PAGE = "0";
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(JobController.class);
-
+	private static final Logger LOG = LoggerFactory.getLogger(JobController.class);
+	private static final String ERROR_MSG = "Job not found: %s";
+	private static final String JOB_MGR_UPPER = "Job Manager";
+	private static final String JOB_MGR_LOWER = "jobmanager";
+	
 	/**
 	 * Initializing the Kafka Producer on Controller startup.
 	 */
@@ -133,18 +136,18 @@ public class JobController {
 			// If no Job was found.
 			if (job == null) {
 				logger.log(String.format("Job not found for requested Id %s", jobId), Severity.WARNING);
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format(ERROR_MSG, jobId), JOB_MGR_UPPER),
 						HttpStatus.NOT_FOUND);
 			}
 			// Return Job Status
 			logger.log(String.format("Returning Job Status for %s", jobId), Severity.INFORMATIONAL,
-					new AuditElement("jobmanager", "readJob", jobId));
+					new AuditElement(JOB_MGR_LOWER, "readJob", jobId));
 			return new ResponseEntity<PiazzaResponse>(new JobStatusResponse(job), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error fetching a Job %s: %s", jobId, exception.getMessage());
-			logger.log(error, Severity.ERROR, new AuditElement("jobmanager", "failedToAccessJob", jobId));
-			LOGGER.error(error, exception);
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), "Job Manager"),
+			logger.log(error, Severity.ERROR, new AuditElement(JOB_MGR_LOWER, "failedToAccessJob", jobId));
+			LOG.error(error, exception);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error fetching Job: " + exception.getMessage(), JOB_MGR_UPPER),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -175,9 +178,9 @@ public class JobController {
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(finalJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Requesting Job: %s", exception.getMessage());
-			LOGGER.error(error, exception);
+			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorRequestingJob", finalJobId));
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, "Job Manager"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse(error, JOB_MGR_UPPER), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -195,7 +198,7 @@ public class JobController {
 			String jobId = ((AbortJob) request.jobType).getJobId();
 			Job jobToCancel = accessor.getJobById(jobId);
 			if (jobToCancel == null) {
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format(ERROR_MSG, jobId), JOB_MGR_UPPER),
 						HttpStatus.NOT_FOUND);
 			}
 			String currentStatus = jobToCancel.getStatus();
@@ -205,19 +208,19 @@ public class JobController {
 				abortJobHandler.process(request);
 				// Log the successful Cancellation
 				logger.log(String.format("Successfully indexed Cancelled Job %s by User %s", ((AbortJob) request.jobType).getJobId(),
-						request.createdBy), Severity.INFORMATIONAL, new AuditElement("jobmanager", "abortJob", jobId));
+						request.createdBy), Severity.INFORMATIONAL, new AuditElement(JOB_MGR_LOWER, "abortJob", jobId));
 				return new ResponseEntity<PiazzaResponse>(
-						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", "Job Manager"), HttpStatus.OK);
+						new SuccessResponse("Job " + jobId + " was requested to be cancelled.", JOB_MGR_UPPER), HttpStatus.OK);
 			} else {
 				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String
 						.format("Could not Abort Job because it is no longer running. The Job reported a status of %s", currentStatus),
-						"Job Manager"), HttpStatus.BAD_REQUEST);
+						JOB_MGR_UPPER), HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
-			LOGGER.error(error, exception);
+			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorCancellingJob", ((AbortJob) request.jobType).getJobId()));
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), "Job Manager"),
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), JOB_MGR_UPPER),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -238,7 +241,7 @@ public class JobController {
 			Job jobToRepeat = accessor.getJobById(jobId);
 
 			if (jobToRepeat == null) {
-				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
+				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format(ERROR_MSG, jobId), JOB_MGR_UPPER),
 						HttpStatus.NOT_FOUND);
 			}
 
@@ -256,9 +259,9 @@ public class JobController {
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(newJobId), HttpStatus.OK);
 		} catch (Exception exception) {
 			String error = String.format("Error Repeating Job: %s", exception.getMessage());
-			LOGGER.error(error, exception);
+			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorProcessingRepeatJob", ""));
-			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), "Job Manager"),
+			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Repeating Job: %s" + exception.getMessage(), JOB_MGR_UPPER),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -294,7 +297,7 @@ public class JobController {
 		}
 		
 		// Get and return
-		logger.log("Looking up Job Query", Severity.INFORMATIONAL, new AuditElement("jobmanager", "queryingJobs", ""));
+		logger.log("Looking up Job Query", Severity.INFORMATIONAL, new AuditElement(JOB_MGR_LOWER, "queryingJobs", ""));
 		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), finalOrder, sortBy, status, userName);
 	}
 

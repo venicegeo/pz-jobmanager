@@ -80,9 +80,12 @@ public class MongoAccessor {
 	@Autowired
 	private Environment environment;
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
+	private static final String STATUS = "status";
+	private static final String JOBID = "jobId";
+	
 	public MongoAccessor() {
+		// Expected for Component instantiation
 	}
 
 	@PostConstruct
@@ -152,7 +155,7 @@ public class MongoAccessor {
 	 * @return The number of Jobs for that status
 	 */
 	public int getJobStatusCount(String status) {
-		return getJobCollection().find(DBQuery.is("status", status)).count();
+		return getJobCollection().find(DBQuery.is(STATUS, status)).count();
 	}
 
 	/**
@@ -164,7 +167,7 @@ public class MongoAccessor {
 	 * @throws InterruptedException
 	 */
 	public Job getJobById(String jobId) throws ResourceAccessException, InterruptedException {
-		BasicDBObject query = new BasicDBObject("jobId", jobId);
+		BasicDBObject query = new BasicDBObject(JOBID, jobId);
 		Job job;
 
 		try {
@@ -204,7 +207,7 @@ public class MongoAccessor {
 			query.and(DBQuery.is("createdBy", userName));
 		}
 		if ((status != null) && (status.isEmpty() == false)) {
-			query.and(DBQuery.is("status", status));
+			query.and(DBQuery.is(STATUS, status));
 		}
 
 		// Execute the query
@@ -239,7 +242,7 @@ public class MongoAccessor {
 	 *            The Status String of the Job
 	 */
 	public void updateJobStatus(String jobId, String status) {
-		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("status", status));
+		getJobCollection().update(DBQuery.is(JOBID, jobId), DBUpdate.set(STATUS, status));
 	}
 
 	/**
@@ -251,7 +254,7 @@ public class MongoAccessor {
 	 *            The progres to set
 	 */
 	public void updateJobProgress(String jobId, JobProgress progress) {
-		getJobCollection().update(DBQuery.is("jobId", jobId), DBUpdate.set("progress", progress));
+		getJobCollection().update(DBQuery.is(JOBID, jobId), DBUpdate.set("progress", progress));
 	}
 
 	/**
@@ -276,13 +279,13 @@ public class MongoAccessor {
 				update.set("progress", statusUpdate.getProgress());
 			}
 			if (statusUpdate.getStatus().isEmpty() == false) {
-				update.set("status", statusUpdate.getStatus());
+				update.set(STATUS, statusUpdate.getStatus());
 			}
 			// Form the query to update the job matching the ID. Do not update if the Job Status is in a finished state.
-			Query query = DBQuery.is("jobId", jobId)
-					.and(DBQuery.notEquals("status", StatusUpdate.STATUS_CANCELLED).and(
-							DBQuery.notEquals("status", StatusUpdate.STATUS_ERROR).and(DBQuery.notEquals("status", StatusUpdate.STATUS_FAIL)
-									.and(DBQuery.notEquals("status", StatusUpdate.STATUS_SUCCESS)))));
+			Query query = DBQuery.is(JOBID, jobId)
+					.and(DBQuery.notEquals(STATUS, StatusUpdate.STATUS_CANCELLED).and(
+							DBQuery.notEquals(STATUS, StatusUpdate.STATUS_ERROR).and(DBQuery.notEquals(STATUS, StatusUpdate.STATUS_FAIL)
+									.and(DBQuery.notEquals(STATUS, StatusUpdate.STATUS_SUCCESS)))));
 			// Commit
 			getJobCollection().update(query, update);
 		}
@@ -337,7 +340,7 @@ public class MongoAccessor {
 	 *            The Id of the job to delete
 	 */
 	public void removeJob(String jobId) {
-		getJobCollection().remove(DBQuery.is("jobId", jobId));
+		getJobCollection().remove(DBQuery.is(JOBID, jobId));
 	}
 
 	/**
