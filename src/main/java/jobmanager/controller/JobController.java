@@ -198,7 +198,7 @@ public class JobController {
 				return new ResponseEntity<PiazzaResponse>(new ErrorResponse(String.format("Job not found: %s", jobId), "Job Manager"),
 						HttpStatus.NOT_FOUND);
 			}
-			String currentStatus = jobToCancel.status;
+			String currentStatus = jobToCancel.getStatus();
 			if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 					|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
 				// Abort the Job in the Jobs table.

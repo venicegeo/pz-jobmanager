@@ -325,7 +325,7 @@ public class MongoAccessor {
 			job.setProgress(statusUpdate.getProgress());
 		}
 		// Set the Result
-		job.result = statusUpdate.getResult();
+		job.setResult(statusUpdate.getResult());
 		// Re-add the Job to the database.
 		addJob(job);
 	}

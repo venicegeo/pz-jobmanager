@@ -97,11 +97,11 @@ public class JobControllerTests {
 
 		// Mock a Job
 		mockJob = new Job();
-		mockJob.jobId = UUID.randomUUID().toString();
-		mockJob.status = StatusUpdate.STATUS_RUNNING;
-		mockJob.progress = new JobProgress(75);
-		mockJob.jobType = new IngestJob();
-		mockJob.createdOn = new DateTime();
+		mockJob.setJobId(UUID.randomUUID().toString());
+		mockJob.setStatus(StatusUpdate.STATUS_RUNNING);
+		mockJob.setProgress(new JobProgress(75));
+		mockJob.setJobType(new IngestJob());
+		mockJob.setCreatedOnString(new DateTime().toString());
 		// Mock a list of Jobs
 		mockJobs = new ArrayList<Job>();
 		mockJobs.add(mockJob);
@@ -125,20 +125,20 @@ public class JobControllerTests {
 		assertTrue(response instanceof ErrorResponse);
 
 		// When we query the Status of the Mock Job's Id, return the Mock Job
-		when(accessor.getJobById(mockJob.jobId)).thenReturn(mockJob);
+		when(accessor.getJobById(mockJob.getJobId())).thenReturn(mockJob);
 
 		// Query the Job
-		response = jobController.getJobStatus(mockJob.jobId).getBody();
+		response = jobController.getJobStatus(mockJob.getJobId()).getBody();
 		assertTrue(response instanceof JobStatusResponse);
 		JobStatusResponse jobStatus = (JobStatusResponse) response;
 		assertTrue(jobStatus.data.jobId.equals(mockJob.getJobId()));
-		assertTrue(jobStatus.data.progress.equals(mockJob.progress));
+		assertTrue(jobStatus.data.progress.equals(mockJob.getProgress()));
 		assertTrue(jobStatus.data.status.equals(StatusUpdate.STATUS_RUNNING));
 		assertTrue(jobStatus.data.jobType.equals(mockJob.getJobType().getClass().getSimpleName()));
 
 		// Test Job Not Exists
-		when(accessor.getJobById(mockJob.jobId)).thenReturn(null);
-		response = jobController.getJobStatus(mockJob.jobId).getBody();
+		when(accessor.getJobById(mockJob.getJobId())).thenReturn(null);
+		response = jobController.getJobStatus(mockJob.getJobId()).getBody();
 		assertTrue(response instanceof ErrorResponse);
 	}
 

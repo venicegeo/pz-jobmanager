@@ -54,11 +54,11 @@ public class AbortJobHandler {
 			throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
 		}
 		// Ensure the user has permission to cancel the Job.
-		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {
+		if ((jobToCancel.getCreatedBy() == null) || (!jobToCancel.getCreatedBy().equals(request.createdBy))) {
 			throw new PiazzaJobException(
 					String.format("Could not Abort Job %s because it was not requested by the originating user.", abortJob.getJobId()));
 		}
-		String currentStatus = jobToCancel.status;
+		String currentStatus = jobToCancel.getStatus();
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLING);
