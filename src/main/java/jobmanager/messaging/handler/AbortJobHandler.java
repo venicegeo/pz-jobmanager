@@ -47,12 +47,22 @@ public class AbortJobHandler {
 	 * @param request
 	 *            Job request.
 	 */
-	public void process(PiazzaJobRequest request) throws ResourceAccessException, InterruptedException, PiazzaJobException {
-		AbortJob abortJob = (AbortJob) request.jobType;
-		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
-		if (jobToCancel == null) {
-			throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
+	public void process(PiazzaJobRequest request) throws PiazzaJobException {
+		final AbortJob abortJob = (AbortJob) request.jobType;
+		Job jobToCancel = null;
+		
+		try {
+			jobToCancel = accessor.getJobById(abortJob.getJobId());
+		} catch (ResourceAccessException | InterruptedException e) {
+			String error = String.format("Could not retrieve Abort Job by ID: %s", abortJob.getJobId());
+			logger.log(error, Severity.INFORMATIONAL);
 		}
+		finally {
+			if (jobToCancel == null) {
+				throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
+			}
+		}
+		
 		// Ensure the user has permission to cancel the Job.
 		if ((jobToCancel.getCreatedBy() == null) || (!jobToCancel.getCreatedBy().equals(request.createdBy))) {
 			throw new PiazzaJobException(

@@ -47,7 +47,7 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	@Value("${thread.count.limit}")
 	private int threadCountLimit;
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(MongoAccessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MongoAccessor.class);
 	
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
@@ -71,13 +71,8 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 
 	@Override
 	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-		return new AsyncUncaughtExceptionHandler() {
-			@Override
-			public void handleUncaughtException(Throwable ex, Method method, Object... params) {
-				String error = String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(),
-						method.getName());
-				LOGGER.error(error);
-			}
-		};
+		return (Throwable ex, Method method, Object... params) -> 
+			LOG.error(
+				String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(), method.getName()));
 	}
 }
