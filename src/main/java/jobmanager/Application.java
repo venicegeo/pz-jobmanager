@@ -72,7 +72,6 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	@Override
 	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
 		return (Throwable ex, Method method, Object... params) -> 
-			LOG.error(
-				String.format("Uncaught Threading exception encountered in %s with details: %s", ex.getMessage(), method.getName()));
+			LOG.error("Uncaught Threading exception encountered in {} with details: {}", ex.getMessage(), method.getName()); 
 	}
 }

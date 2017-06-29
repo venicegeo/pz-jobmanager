@@ -15,6 +15,8 @@
  **/
 package jobmanager.messaging.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -41,6 +43,8 @@ public class AbortJobHandler {
 	@Autowired
 	private MongoAccessor accessor;
 
+	private static final Logger LOG = LoggerFactory.getLogger(AbortJobHandler.class);
+
 	/**
 	 * Processes a Job request to cancel a Piazza job.
 	 * 
@@ -55,12 +59,12 @@ public class AbortJobHandler {
 			jobToCancel = accessor.getJobById(abortJob.getJobId());
 		} catch (ResourceAccessException | InterruptedException e) {
 			String error = String.format("Could not retrieve Abort Job by ID: %s", abortJob.getJobId());
+			LOG.info(error, e);
 			logger.log(error, Severity.INFORMATIONAL);
 		}
-		finally {
-			if (jobToCancel == null) {
-				throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
-			}
+		
+		if (jobToCancel == null) {
+			throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
 		}
 		
 		// Ensure the user has permission to cancel the Job.
