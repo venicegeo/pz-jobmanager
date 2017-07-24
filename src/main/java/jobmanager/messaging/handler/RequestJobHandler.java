@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
 import model.logger.AuditElement;
@@ -50,7 +50,7 @@ public class RequestJobHandler {
 	@Autowired
 	private UUIDFactory uuidFactory;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Value("${SPACE}")
 	private String SPACE;
 	@Value("${logger.console.job.payloads:false}")
@@ -113,7 +113,7 @@ public class RequestJobHandler {
 				job.setJobId(uuidFactory.getUUID());
 			}
 			// Commit the Job metadata to the Jobs table
-			accessor.getJobCollection().insert(job);
+			accessor.addJob(job);
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.

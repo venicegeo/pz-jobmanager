@@ -35,7 +35,7 @@ import org.mockito.stubbing.Answer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.RequestJobHandler;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
@@ -52,7 +52,7 @@ public class RequestHandlerTests {
 	@Mock
 	private PiazzaLogger logger;
 	@Mock
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Mock
 	private UUIDFactory uuidFactory;
 	@Mock

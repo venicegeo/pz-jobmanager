@@ -34,20 +34,20 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 
 @SpringBootApplication
 @Configuration
 @EnableAsync
 @EnableScheduling
-@ComponentScan({ "jobmanager, util" })
+@ComponentScan({ "jobmanager, util, org.venice.piazza" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 	@Value("${thread.count.size}")
 	private int threadCountSize;
 	@Value("${thread.count.limit}")
 	private int threadCountLimit;
 
-	private static final Logger LOG = LoggerFactory.getLogger(MongoAccessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseAccessor.class);
 	
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {

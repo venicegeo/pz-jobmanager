@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import exception.InvalidInputException;
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
@@ -71,7 +71,7 @@ public class JobController {
 	@Autowired
 	private UUIDFactory uuidFactory;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Autowired
 	private AbortJobHandler abortJobHandler;
 	@Autowired
@@ -311,7 +311,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/count", method = RequestMethod.GET)
 	public long getJobCount() {
-		return accessor.getJobCollection().count();
+		return accessor.getJobsCount();
 	}
 
 	/**

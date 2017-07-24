@@ -41,7 +41,7 @@ import org.springframework.web.client.RestClientException;
 
 import exception.PiazzaJobException;
 import jobmanager.controller.JobController;
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
@@ -73,7 +73,7 @@ public class JobControllerTests {
 	@Mock
 	private UUIDFactory uuidFactory;
 	@Mock
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Mock
 	private AbortJobHandler abortJobHandler;
 	@Mock
