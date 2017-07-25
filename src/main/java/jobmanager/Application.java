@@ -26,6 +26,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import jobmanager.database.DatabaseAccessor;
 
@@ -41,8 +43,9 @@ import jobmanager.database.DatabaseAccessor;
 @Configuration
 @EnableAsync
 @EnableScheduling
+@EnableTransactionManagement
 @EnableJpaRepositories
-@ComponentScan({ "jobmanager, util, org.venice.piazza, org.venice.piazza.hibernate.dao.job" })
+@ComponentScan({ "jobmanager, util, org.venice.piazza" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 	@Value("${thread.count.size}")
 	private int threadCountSize;
