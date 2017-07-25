@@ -29,6 +29,7 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -40,7 +41,8 @@ import jobmanager.database.DatabaseAccessor;
 @Configuration
 @EnableAsync
 @EnableScheduling
-@ComponentScan({ "jobmanager, util, org.venice.piazza" })
+@EnableJpaRepositories
+@ComponentScan({ "jobmanager, util, org.venice.piazza, org.venice.piazza.hibernate.dao.job" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 	@Value("${thread.count.size}")
 	private int threadCountSize;
@@ -48,14 +50,14 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 	private int threadCountLimit;
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseAccessor.class);
-	
+
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(Application.class);
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args); //NOSONAR
+		SpringApplication.run(Application.class, args); // NOSONAR
 	}
 
 	@Override
@@ -71,7 +73,7 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 
 	@Override
 	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-		return (Throwable ex, Method method, Object... params) -> 
-			LOG.error("Uncaught Threading exception encountered in {} with details: {}", ex.getMessage(), method.getName()); 
+		return (Throwable ex, Method method, Object... params) -> LOG
+				.error("Uncaught Threading exception encountered in {} with details: {}", ex.getMessage(), method.getName());
 	}
 }

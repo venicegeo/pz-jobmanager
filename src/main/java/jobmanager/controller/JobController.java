@@ -345,7 +345,7 @@ public class JobController {
 	 * @return List of Jobs that match the specified status.
 	 */
 	@RequestMapping(value = "/job/status/{status}/count", method = RequestMethod.GET)
-	public int getStatusCount(@PathVariable(value = "status") String status) {
+	public Long getStatusCount(@PathVariable(value = "status") String status) {
 		return accessor.getJobStatusCount(status);
 	}
 

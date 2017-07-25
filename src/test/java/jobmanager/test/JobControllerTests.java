@@ -236,7 +236,7 @@ public class JobControllerTests {
 	public void testAdminStats() {
 		// Mock
 		when(accessor.getJobsCount()).thenReturn(new Long(10));
-		when(accessor.getJobStatusCount(anyString())).thenReturn(10);
+		when(accessor.getJobStatusCount(anyString())).thenReturn(new Long(10));
 
 		// Test
 		ResponseEntity<Map<String, Object>> entity = jobController.getAdminStats();
