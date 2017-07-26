@@ -46,6 +46,7 @@ import jobmanager.database.DatabaseAccessor;
 @EnableAsync
 @EnableScheduling
 @EnableTransactionManagement
+@EnableJpaRepositories(basePackages = { "org.venice.piazza.common.hibernate" })
 @EntityScan(basePackages = { "org.venice.piazza.common.hibernate" })
 @ComponentScan(basePackages = { "jobmanager", "util", "org.venice.piazza" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
