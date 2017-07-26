@@ -82,8 +82,7 @@ public class DatabaseAccessor {
 	 * @return The number of Jobs for that status
 	 */
 	public Long getJobStatusCount(String status) {
-		return jobDao.count();
-		// TODO: This is wrong, just for debugging
+		return jobDao.countJobByStatus(status);
 	}
 
 	/**
