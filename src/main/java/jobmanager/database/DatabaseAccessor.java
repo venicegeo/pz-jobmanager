@@ -82,7 +82,8 @@ public class DatabaseAccessor {
 	 * @return The number of Jobs for that status
 	 */
 	public Long getJobStatusCount(String status) {
-		return jobDao.countJobByStatus(status);
+		return jobDao.count();
+		// TODO: This is wrong, just for debugging
 	}
 
 	/**
@@ -281,7 +282,7 @@ public class DatabaseAccessor {
 	 *            The Job
 	 */
 	public void addJob(Job job) {
-		jobDao.save(job);
+		// jobDao.save(job);
 	}
 
 }
