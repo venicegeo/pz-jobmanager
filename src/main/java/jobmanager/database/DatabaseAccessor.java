@@ -15,9 +15,16 @@
  **/
 package jobmanager.database;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.venice.piazza.common.hibernate.dao.job.JobDao;
@@ -26,6 +33,7 @@ import org.venice.piazza.common.hibernate.entity.JobEntity;
 import model.job.Job;
 import model.job.JobProgress;
 import model.response.JobListResponse;
+import model.response.Pagination;
 import model.status.StatusUpdate;
 
 /**
@@ -115,7 +123,23 @@ public class DatabaseAccessor {
 	 * @return The list of jobs
 	 */
 	public JobListResponse getJobs(int page, int perPage, String order, String sortBy, String status, String userName) {
-		return null;
+		// Define the Pageable Object
+		Direction direction = Direction.DESC;
+		if ((order != null) && (!order.isEmpty())) {
+			direction = order == "asc" ? Direction.ASC : Direction.DESC;
+		}
+		Pageable pageable = new PageRequest(page, perPage, direction, "data ->> 'sortBy'");
+		Page<JobEntity> results = jobDao.getListByUsernameAndStatus(/* userName, status, */pageable);
+		List<Job> jobs = new ArrayList<Job>();
+		// Collect the Jobs
+		for (JobEntity jobEntity : results) {
+			jobs.add(jobEntity.getJob());
+		}
+		// Add Pagination.
+		Pagination pagination = new Pagination(results.getTotalElements(), page, perPage, sortBy, order);
+
+		return new JobListResponse(jobs, pagination);
+
 		// // Construct the query based on the user parameters.
 		// Query query = DBQuery.empty();
 		// if ((userName != null) && (userName.isEmpty() == false)) {
