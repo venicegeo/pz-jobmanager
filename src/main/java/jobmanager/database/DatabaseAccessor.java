@@ -128,7 +128,6 @@ public class DatabaseAccessor {
 		if ((order != null) && (!order.isEmpty())) {
 			direction = order == "asc" ? Direction.ASC : Direction.DESC;
 		}
-		Pageable pageable = new PageRequest(page, perPage, direction, "data ->> 'sortBy'");
 		Page<JobEntity> results = jobDao.getListByUsernameAndStatus(/* userName, status, */pageable);
 		List<Job> jobs = new ArrayList<Job>();
 		// Collect the Jobs
