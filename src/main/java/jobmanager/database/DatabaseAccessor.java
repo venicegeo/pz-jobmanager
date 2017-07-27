@@ -95,23 +95,8 @@ public class DatabaseAccessor {
 	 * @throws InterruptedException
 	 */
 	public Job getJobById(String jobId) throws ResourceAccessException, InterruptedException {
-		return null;
-		// BasicDBObject query = new BasicDBObject(JOBID, jobId);
-		// Job job;
-		//
-		// try {
-		// if ((job = getJobCollection().findOne(query)) == null) {
-		// // In case the Job was being updated, or it doesn't exist at this point, try once more. I admit this is
-		// // not optimal, but it certainly covers a host of race conditions.
-		// Thread.sleep(100);
-		// job = getJobCollection().findOne(query);
-		// }
-		// } catch (MongoTimeoutException mte) {
-		// LOGGER.error(mte.getMessage(), mte);
-		// throw new ResourceAccessException("MongoDB instance not available.");
-		// }
-		//
-		// return job;
+		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
+		return jobEntity != null ? jobEntity.getJob() : null;
 	}
 
 	/**
