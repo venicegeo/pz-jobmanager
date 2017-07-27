@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.venice.piazza.common.hibernate.dao.job.JobDao;
+import org.venice.piazza.common.hibernate.entity.JobEntity;
 
 import model.job.Job;
 import model.job.JobProgress;
@@ -271,7 +272,7 @@ public class DatabaseAccessor {
 	 *            The Id of the job to delete
 	 */
 	public void removeJob(String jobId) {
-		// getJobCollection().remove(DBQuery.is(JOBID, jobId));
+		jobDao.deleteJobById(jobId);
 	}
 
 	/**
@@ -281,7 +282,8 @@ public class DatabaseAccessor {
 	 *            The Job
 	 */
 	public void addJob(Job job) {
-		// jobDao.save(job);
+		JobEntity jobEntity = new JobEntity(job);
+		jobDao.save(jobEntity);
 	}
 
 }
