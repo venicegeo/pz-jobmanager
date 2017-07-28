@@ -128,14 +128,15 @@ public class DatabaseAccessor {
 		if ((order != null) && (!order.isEmpty())) {
 			direction = order == "asc" ? Direction.ASC : Direction.DESC;
 		}
-		Page<JobEntity> results = jobDao.getListByUsernameAndStatus(/* userName, status, */pageable);
+		Pagination pagination = new Pagination(null, page, perPage, sortBy, order);
+		Page<JobEntity> results = jobDao.retrievePageableJobList(pagination);
 		List<Job> jobs = new ArrayList<Job>();
 		// Collect the Jobs
 		for (JobEntity jobEntity : results) {
 			jobs.add(jobEntity.getJob());
 		}
-		// Add Pagination.
-		Pagination pagination = new Pagination(results.getTotalElements(), page, perPage, sortBy, order);
+		// Set Pagination count
+		pagination.setCount(results.getTotalElements());
 
 		return new JobListResponse(jobs, pagination);
 
