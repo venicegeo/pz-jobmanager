@@ -123,53 +123,33 @@ public class DatabaseAccessor {
 	 * @return The list of jobs
 	 */
 	public JobListResponse getJobs(int page, int perPage, String order, String sortBy, String status, String userName) {
-		// Define the Pageable Object
-		Direction direction = Direction.DESC;
-		if ((order != null) && (!order.isEmpty())) {
-			direction = order == "asc" ? Direction.ASC : Direction.DESC;
-		}
+		// Execute the appropriate query based on the nullable, optional parameters
 		Pagination pagination = new Pagination(null, page, perPage, sortBy, order);
-		Page<JobEntity> results = jobDao.retrievePageableJobList(pagination);
-		List<Job> jobs = new ArrayList<Job>();
+		Page<JobEntity> results = null;
+		if (((userName != null) && (userName.isEmpty() == false)) && ((status != null) && (status.isEmpty() == false))) {
+			// Both parameters specified
+			results = jobDao.getJobListForUserAndStatus(status, userName, pagination);
+		} else if ((userName != null) && (userName.isEmpty() == false)) {
+			// Query by User
+			results = jobDao.getJobListByUser(userName, pagination);
+		} else if ((status != null) && (status.isEmpty() == false)) {
+			// Query by Status
+			results = jobDao.getJobListByStatus(status, pagination);
+		} else {
+			// Query all Jobs
+			results = jobDao.getJobList(pagination);
+		}
+
 		// Collect the Jobs
+		List<Job> jobs = new ArrayList<Job>();
 		for (JobEntity jobEntity : results) {
 			jobs.add(jobEntity.getJob());
 		}
 		// Set Pagination count
 		pagination.setCount(results.getTotalElements());
 
+		// Return the complete List
 		return new JobListResponse(jobs, pagination);
-
-		// // Construct the query based on the user parameters.
-		// Query query = DBQuery.empty();
-		// if ((userName != null) && (userName.isEmpty() == false)) {
-		// query.and(DBQuery.is("createdBy", userName));
-		// }
-		// if ((status != null) && (status.isEmpty() == false)) {
-		// query.and(DBQuery.is(STATUS, status));
-		// }
-		//
-		// // Execute the query
-		// DBCursor<Job> cursor = getJobCollection().find(query);
-		//
-		// // Sort and order the Results
-		// if ("asc".equalsIgnoreCase(order)) {
-		// cursor = cursor.sort(DBSort.asc(sortBy));
-		// } else if ("desc".equalsIgnoreCase(order)) {
-		// cursor = cursor.sort(DBSort.desc(sortBy));
-		// }
-		//
-		// // Get the total count
-		// Integer size = Integer.valueOf(cursor.size());
-		//
-		// // Paginate the results
-		// List<Job> jobs = cursor.skip(page * perPage).limit(perPage).toArray();
-		//
-		// // Attach pagination information
-		// Pagination pagination = new Pagination(size, page, perPage, sortBy, order);
-		//
-		// // Create the Response and send back
-		// return new JobListResponse(jobs, pagination);
 	}
 
 	/**
