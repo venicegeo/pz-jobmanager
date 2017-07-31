@@ -18,13 +18,8 @@ package jobmanager.database;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.venice.piazza.common.hibernate.dao.job.JobDao;
@@ -44,31 +39,8 @@ import model.status.StatusUpdate;
  */
 @Component
 public class DatabaseAccessor {
-
-	// @Value("${vcap.services.pz-mongodb.credentials.uri}")
-	// private String DATABASE_URI;
-	// @Value("${vcap.services.pz-mongodb.credentials.database}")
-	// private String DATABASE_NAME;
-	// @Value("${vcap.services.pz-mongodb.credentials.host}")
-	// private String DATABASE_HOST;
-	// @Value("${vcap.services.pz-mongodb.credentials.port}")
-	// private int DATABASE_PORT;
-	// @Value("${vcap.services.pz-mongodb.credentials.username:}")
-	// private String DATABASE_USERNAME;
-	// @Value("${vcap.services.pz-mongodb.credentials.password:}")
-	// private String DATABASE_CREDENTIAL;
-	// @Value("${mongo.db.collection.name}")
-	// private String JOB_COLLECTION_NAME;
-	// @Value("${mongo.thread.multiplier}")
-	// private int mongoThreadMultiplier;
-	// private MongoClient mongoClient;
-
 	@Autowired
 	private JobDao jobDao;
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseAccessor.class);
-	private static final String STATUS = "status";
-	private static final String JOBID = "jobId";
 
 	public DatabaseAccessor() {
 		// Expected for Component instantiation
@@ -161,7 +133,12 @@ public class DatabaseAccessor {
 	 *            The Status String of the Job
 	 */
 	public void updateJobStatus(String jobId, String status) {
-		// getJobCollection().update(DBQuery.is(JOBID, jobId), DBUpdate.set(STATUS, status));
+		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
+		if (jobEntity != null) {
+			Job job = jobEntity.getJob();
+			job.setStatus(status);
+			jobDao.save(jobEntity);
+		}
 	}
 
 	/**
@@ -173,7 +150,12 @@ public class DatabaseAccessor {
 	 *            The progres to set
 	 */
 	public void updateJobProgress(String jobId, JobProgress progress) {
-		// getJobCollection().update(DBQuery.is(JOBID, jobId), DBUpdate.set("progress", progress));
+		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
+		if (jobEntity != null) {
+			Job job = jobEntity.getJob();
+			job.setProgress(progress);
+			jobDao.save(jobEntity);
+		}
 	}
 
 	/**
@@ -186,72 +168,24 @@ public class DatabaseAccessor {
 	 *            The Status Update information
 	 */
 	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) throws ResourceAccessException, InterruptedException {
-		// // Determine if the Result is part of the status. If so, then this will be an entire delete/re-entry of the
-		// Job
-		// // object into the database.
-		// if (statusUpdate.getResult() != null) {
-		// updateJobStatusWithResult(jobId, statusUpdate);
-		// } else {
-		// // If the Result is not part of the Status, then we can update the existing Job fields in a single commit.
-		// // Form the DBUpdate, which will modify the fields
-		// Builder update = new Builder();
-		// if (statusUpdate.getProgress() != null) {
-		// update.set("progress", statusUpdate.getProgress());
-		// }
-		// if (statusUpdate.getStatus().isEmpty() == false) {
-		// update.set(STATUS, statusUpdate.getStatus());
-		// }
-		// // Form the query to update the job matching the ID. Do not update if the Job Status is in a finished state.
-		// Query query = DBQuery.is(JOBID, jobId).and(DBQuery.notEquals(STATUS,
-		// StatusUpdate.STATUS_CANCELLED).and(DBQuery
-		// .notEquals(STATUS, StatusUpdate.STATUS_ERROR)
-		// .and(DBQuery.notEquals(STATUS, StatusUpdate.STATUS_FAIL).and(DBQuery.notEquals(STATUS,
-		// StatusUpdate.STATUS_SUCCESS)))));
-		// // Commit
-		// getJobCollection().update(query, update);
-		// }
-	}
+		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
+		if (jobEntity != null) {
+			Job job = jobEntity.getJob();
 
-	/**
-	 * Updates the Job with the Status Update; a Status that contains a Result object.
-	 * 
-	 * It is important to note that we are not doing an update of the Mongo Resource here, as one would expect. This is
-	 * due to a bug in MongoJack, documented here: https://github.com/mongojack/mongojack/issues/101; that explains how
-	 * updating of MongoJack collections with polymorphic objects currently only serializes the fields found in the
-	 * parent class or interface, and all child fields are ignored.
-	 * 
-	 * This is important for us because the Results of a Job are polymorphic (specifically, the ResultType interface)
-	 * and thus are not getting properly serialized as a result of this bug. This bug exists in all versions of
-	 * MongoJack and is still OPEN in GitHub issues.
-	 * 
-	 * Due to this issue, we are updating the Job properties in a Job object, and then deleting that object from the
-	 * database and immediately committing the new Job with the updates. The above-mentioned bug only affects updates,
-	 * so the work-around here is avoiding updates by creating a new object in the database. This is functionally
-	 * acceptable because we make no use of MongoDB's primary key - our key is based on the JobId property, which is
-	 * maintained throughout the transaction.
-	 * 
-	 * @param jobId
-	 *            The Job Id to update
-	 * @param statusUpdate
-	 *            The Status Update with the Result (and any other Status information)
-	 */
-	private synchronized void updateJobStatusWithResult(String jobId, StatusUpdate statusUpdate)
-			throws ResourceAccessException, InterruptedException {
-		// // Get the existing Job and all of its properties
-		// Job job = getJobById(jobId);
-		// // Remove existing Job
-		// removeJob(jobId);
-		// // Update the Job object with the Status information.
-		// if (statusUpdate.getStatus().isEmpty() == false) {
-		// job.setStatus(statusUpdate.getStatus());
-		// }
-		// if (statusUpdate.getProgress() != null) {
-		// job.setProgress(statusUpdate.getProgress());
-		// }
-		// // Set the Result
-		// job.setResult(statusUpdate.getResult());
-		// // Re-add the Job to the database.
-		// addJob(job);
+			// Only update the information that is not null
+			if (statusUpdate.getStatus().isEmpty() == false) {
+				job.setStatus(statusUpdate.getStatus());
+			}
+			if (statusUpdate.getProgress() != null) {
+				job.setProgress(statusUpdate.getProgress());
+			}
+			if (statusUpdate.getResult() != null) {
+				job.setResult(statusUpdate.getResult());
+			}
+
+			// Commit
+			jobDao.save(jobEntity);
+		}
 	}
 
 	/**

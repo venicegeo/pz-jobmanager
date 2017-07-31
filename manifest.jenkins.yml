@@ -8,7 +8,6 @@ applications:
   timeout: 80
   services:
     - pz-kafka
-    - pz-mongodb
     - pz-elasticsearch
     - pz-geoserver-efs
   env:

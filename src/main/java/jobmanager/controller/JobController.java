@@ -46,6 +46,7 @@ import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
 import messaging.job.KafkaClientFactory;
 import model.job.Job;
+import model.job.JobProgress;
 import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
 import model.logger.AuditElement;

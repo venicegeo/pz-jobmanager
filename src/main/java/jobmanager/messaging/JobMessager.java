@@ -42,7 +42,7 @@ import model.logger.Severity;
 import util.PiazzaLogger;
 
 /**
- * Interacts with the Jobs Collection in the Mongo database based on Kafka messages received.
+ * Interacts with the Jobs Collection in the database based on Kafka messages received.
  * 
  * @author Patrick.Doody
  * 
