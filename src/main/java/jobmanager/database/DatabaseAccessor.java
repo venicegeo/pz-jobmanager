@@ -18,6 +18,7 @@ package jobmanager.database;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -98,13 +99,14 @@ public class DatabaseAccessor {
 		// Execute the appropriate query based on the nullable, optional parameters
 		Pagination pagination = new Pagination(null, page, perPage, sortBy, order);
 		Page<JobEntity> results = null;
-		if (((userName != null) && (userName.isEmpty() == false)) && ((status != null) && (status.isEmpty() == false))) {
+
+		if ( StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(status)) {
 			// Both parameters specified
 			results = jobDao.getJobListForUserAndStatus(status, userName, pagination);
-		} else if ((userName != null) && (userName.isEmpty() == false)) {
+		} else if (StringUtils.isNotEmpty(userName)) {
 			// Query by User
 			results = jobDao.getJobListByUser(userName, pagination);
-		} else if ((status != null) && (status.isEmpty() == false)) {
+		} else if (StringUtils.isNotEmpty(status)) {
 			// Query by Status
 			results = jobDao.getJobListByStatus(status, pagination);
 		} else {
