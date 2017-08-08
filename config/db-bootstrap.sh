@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This is deprecated. Job Manager no longer uses MongoDB. 
+
 # Install software requirements
 # See: https://docs.mongodb.org/v3.0/tutorial/install-mongodb-on-ubuntu/
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10

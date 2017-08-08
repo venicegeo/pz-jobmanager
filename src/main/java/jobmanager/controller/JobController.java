@@ -40,12 +40,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import exception.InvalidInputException;
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
 import messaging.job.KafkaClientFactory;
 import model.job.Job;
+import model.job.JobProgress;
 import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
 import model.logger.AuditElement;
@@ -71,7 +72,7 @@ public class JobController {
 	@Autowired
 	private UUIDFactory uuidFactory;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Autowired
 	private AbortJobHandler abortJobHandler;
 	@Autowired
@@ -91,7 +92,7 @@ public class JobController {
 	private static final String ERROR_MSG = "Job not found: %s";
 	private static final String JOB_MGR_UPPER = "Job Manager";
 	private static final String JOB_MGR_LOWER = "jobmanager";
-	
+
 	/**
 	 * Initializing the Kafka Producer on Controller startup.
 	 */
@@ -166,10 +167,10 @@ public class JobController {
 	@RequestMapping(value = "/requestJob", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PiazzaResponse> requestJob(@RequestBody PiazzaJobRequest request,
 			@RequestParam(value = "jobId", required = false) String jobId) {
-		
+
 		// Generate a Job Id if needed
 		final String finalJobId = jobId.isEmpty() ? uuidFactory.getUUID() : jobId;
-		
+
 		try {
 
 			// Create the Job and send off the Job Kafka message
@@ -219,7 +220,8 @@ public class JobController {
 		} catch (Exception exception) {
 			String error = String.format("Error Cancelling Job: %s", exception.getMessage());
 			LOG.error(error, exception);
-			logger.log(error, Severity.ERROR, new AuditElement(request.createdBy, "errorCancellingJob", ((AbortJob) request.jobType).getJobId()));
+			logger.log(error, Severity.ERROR,
+					new AuditElement(request.createdBy, "errorCancellingJob", ((AbortJob) request.jobType).getJobId()));
 			return new ResponseEntity<PiazzaResponse>(new ErrorResponse("Error Cancelling Job: " + exception.getMessage(), JOB_MGR_UPPER),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -282,20 +284,19 @@ public class JobController {
 	public JobListResponse getJobs(@RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE) String page,
 			@RequestParam(value = "perPage", required = false, defaultValue = DEFAULT_PAGE_SIZE) String pageSize,
 			@RequestParam(value = "order", required = false, defaultValue = "asc") String order,
-			@RequestParam(value = "sortBy", required = false, defaultValue = "submitted") String sortBy,
+			@RequestParam(value = "sortBy", required = false, defaultValue = "createdOn") String sortBy,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "userName", required = false) String userName) {
-		
+
 		final String finalOrder;
-		
+
 		// Don't allow for invalid orders
 		if (!("asc".equalsIgnoreCase(order)) && !("desc".equalsIgnoreCase(order))) {
 			finalOrder = "asc";
-		}
-		else { 
+		} else {
 			finalOrder = order;
 		}
-		
+
 		// Get and return
 		logger.log("Looking up Job Query", Severity.INFORMATIONAL, new AuditElement(JOB_MGR_LOWER, "queryingJobs", ""));
 		return accessor.getJobs(Integer.parseInt(page), Integer.parseInt(pageSize), finalOrder, sortBy, status, userName);
@@ -311,7 +312,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/count", method = RequestMethod.GET)
 	public long getJobCount() {
-		return accessor.getJobCollection().count();
+		return accessor.getJobsCount();
 	}
 
 	/**
@@ -345,7 +346,7 @@ public class JobController {
 	 * @return List of Jobs that match the specified status.
 	 */
 	@RequestMapping(value = "/job/status/{status}/count", method = RequestMethod.GET)
-	public int getStatusCount(@PathVariable(value = "status") String status) {
+	public Long getStatusCount(@PathVariable(value = "status") String status) {
 		return accessor.getJobStatusCount(status);
 	}
 

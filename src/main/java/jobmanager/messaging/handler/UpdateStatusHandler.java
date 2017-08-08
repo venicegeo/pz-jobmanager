@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import model.logger.AuditElement;
 import model.logger.Severity;
 import model.status.StatusUpdate;
@@ -41,7 +41,7 @@ public class UpdateStatusHandler {
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateStatusHandler.class);
 	ObjectMapper mapper = new ObjectMapper();

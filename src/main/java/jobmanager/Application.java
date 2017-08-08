@@ -23,39 +23,47 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 
 @SpringBootApplication
 @Configuration
+@EnableAutoConfiguration
 @EnableAsync
 @EnableScheduling
-@ComponentScan({ "jobmanager, util" })
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = { "org.venice.piazza.common.hibernate" })
+@EntityScan(basePackages = { "org.venice.piazza.common.hibernate" })
+@ComponentScan(basePackages = { "jobmanager", "util", "org.venice.piazza" })
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 	@Value("${thread.count.size}")
 	private int threadCountSize;
 	@Value("${thread.count.limit}")
 	private int threadCountLimit;
 
-	private static final Logger LOG = LoggerFactory.getLogger(MongoAccessor.class);
-	
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseAccessor.class);
+
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(Application.class);
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args); //NOSONAR
+		SpringApplication.run(Application.class, args); // NOSONAR
 	}
 
 	@Override
@@ -71,7 +79,7 @@ public class Application extends SpringBootServletInitializer implements AsyncCo
 
 	@Override
 	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-		return (Throwable ex, Method method, Object... params) -> 
-			LOG.error("Uncaught Threading exception encountered in {} with details: {}", ex.getMessage(), method.getName()); 
+		return (Throwable ex, Method method, Object... params) -> LOG
+				.error("Uncaught Threading exception encountered in {} with details: {}", ex.getMessage(), method.getName());
 	}
 }

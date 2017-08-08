@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 
 import exception.PiazzaJobException;
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
 import model.logger.Severity;
@@ -41,7 +41,7 @@ public class AbortJobHandler {
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbortJobHandler.class);
 
