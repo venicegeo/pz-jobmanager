@@ -100,7 +100,7 @@ public class DatabaseAccessor {
 		Pagination pagination = new Pagination(null, page, perPage, sortBy, order);
 		Page<JobEntity> results = null;
 
-		if ( StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(status)) {
+		if (StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(status)) {
 			// Both parameters specified
 			results = jobDao.getJobListForUserAndStatus(status, userName, pagination);
 		} else if (StringUtils.isNotEmpty(userName)) {
@@ -197,7 +197,10 @@ public class DatabaseAccessor {
 	 *            The Id of the job to delete
 	 */
 	public void removeJob(String jobId) {
-		jobDao.deleteJobById(jobId);
+		JobEntity entity = jobDao.getJobByJobId(jobId);
+		if (entity != null) {
+			jobDao.delete(entity);
+		}
 	}
 
 	/**
