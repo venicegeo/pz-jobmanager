@@ -15,7 +15,6 @@
  **/
 package jobmanager.messaging.handler;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,20 +46,17 @@ public class UpdateStatusHandler {
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Async
-	public void process(ConsumerRecord<String, String> consumerRecord) {
+	public void process(StatusUpdate statusUpdate) {
 		// Changing the Status in the Job Table
+		String jobId = statusUpdate.getJobId();
 		try {
-			// Get the Status wrapper that contains the updates to be applied
-			StatusUpdate statusUpdate = mapper.readValue(consumerRecord.value(), StatusUpdate.class);
-
 			// Update
-			accessor.updateJobStatus(consumerRecord.key(), statusUpdate);
-
+			accessor.updateJobStatus(jobId, statusUpdate);
 			// Log success
-			logger.log(String.format("Processed Update Status for Job %s with Status %s.", consumerRecord.key(), statusUpdate.getStatus()),
-					Severity.INFORMATIONAL, new AuditElement("jobmanager", "updatedJobStatus", consumerRecord.key()));
+			logger.log(String.format("Processed Update Status for Job %s with Status %s.", jobId, statusUpdate.getStatus()),
+					Severity.INFORMATIONAL, new AuditElement("jobmanager", "updatedJobStatus", jobId));
 		} catch (Exception exception) {
-			String error = String.format("Error Updating Status for Job %s with error %s", consumerRecord.key(), exception.getMessage());
+			String error = String.format("Error Updating Status for Job %s with error %s", jobId, exception.getMessage());
 			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR);
 		}

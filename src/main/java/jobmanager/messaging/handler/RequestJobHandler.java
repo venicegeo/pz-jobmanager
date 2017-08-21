@@ -15,14 +15,11 @@
  **/
 package jobmanager.messaging.handler;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,14 +34,16 @@ import util.PiazzaLogger;
 import util.UUIDFactory;
 
 /**
- * Handles the Kafka topic for the requesting of a Job on the "Request-Job" topic. This will relay the "Create-Job" job
- * topic to the appropriate worker components, while additionally adding in the Job metadata to the Jobs table.
+ * Handles the Message Queue for the requesting of a Job on the "Request-Job" topic. This will relay the "Create-Job"
+ * job topic to the appropriate worker components, while additionally adding in the Job metadata to the Jobs table.
  * 
  * @author Patrick.Doody
  *
  */
 @Component
 public class RequestJobHandler {
+	@Autowired
+	private RabbitTemplate rabbitTemplate;
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
@@ -57,44 +56,10 @@ public class RequestJobHandler {
 	private Boolean logJobPayloadsToConsole;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RequestJobHandler.class);
-	private Producer<String, String> producer;
 	ObjectMapper mapper = new ObjectMapper();
 
 	/**
-	 * Sets the producer for this Handler. Uses injection from the Job Messager in order to be efficient in creating
-	 * only one producer, as producers are thread-safe.
-	 * 
-	 * @param producer
-	 *            The producer.
-	 */
-	public void setProducer(Producer<String, String> producer) {
-		this.producer = producer;
-	}
-
-	/**
-	 * Processes a message on the "Request-Job" topic. This will add the Job metadata into the Jobs table, and then fire
-	 * the Kafka event to the worker components to process the Job.
-	 * 
-	 * @param consumerRecord
-	 *            The Job request message.
-	 */
-	@Async
-	public void process(ConsumerRecord<String, String> consumerRecord) {
-		try {
-			// Deserialize the message
-			PiazzaJobRequest jobRequest = mapper.readValue(consumerRecord.value(), PiazzaJobRequest.class);
-			String jobId = consumerRecord.key();
-			process(jobRequest, jobId);
-		} catch (Exception exception) {
-			String error = String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
-					consumerRecord.key(), exception.getMessage());
-			LOG.error(error, exception);
-			logger.log(error, Severity.ERROR);
-		}
-	}
-
-	/**
-	 * Processes a new Piazza Job Request. This will add the Job metadata into the Jobs table, and then fire the Kafka
+	 * Processes a new Piazza Job Request. This will add the Job metadata into the Jobs table, and then fire the Message
 	 * event to the worker components to process the Job.
 	 * 
 	 * @param jobRequest
@@ -114,17 +79,21 @@ public class RequestJobHandler {
 			}
 			// Commit the Job metadata to the Jobs table
 			accessor.addJob(job);
+
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
-			ProducerRecord<String, String> message = JobMessageFactory.getWorkerJobCreateMessage(job, SPACE);
-			producer.send(message);
+			String queueName = String.format(JobMessageFactory.KAFKA_TOPIC_TEMPLATE, job.getJobType().getClass().getSimpleName(), SPACE);
+			rabbitTemplate.convertAndSend(queueName, mapper.writeValueAsString(job));
+
 			// Log default to Piazza Logger
-			logger.log(String.format("Relayed Job Id %s for Type %s on Kafka topic %s", job.getJobId(), job.getJobType().getClass().getSimpleName(), message.topic()),
+			logger.log(
+					String.format("Relayed Job Id %s for Type %s on Message Queue %s", job.getJobId(),
+							job.getJobType().getClass().getSimpleName(), queueName),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
 			// If extended logging is enabled, then log the payload of the job.
 			if (logJobPayloadsToConsole.booleanValue() && LOG.isInfoEnabled()) {
-				LOG.info(String.format("Job Id %s payload was: %s", job.getJobId(), new ObjectMapper().writeValueAsString(job)));
+				LOG.info(String.format("Job Id %s payload was: %s", job.getJobId(), mapper.writeValueAsString(job)));
 			}
 		} catch (Exception exception) {
 			String error = String.format("Error Processing Request-Job with error %s", exception.getMessage());
