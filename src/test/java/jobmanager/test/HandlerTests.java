@@ -184,8 +184,7 @@ public class HandlerTests {
 		// Mock
 		StatusUpdate mockStatus = new StatusUpdate(StatusUpdate.STATUS_RUNNING, new JobProgress(50));
 		mockStatus.setResult(new TextResult("Done"));
-		ConsumerRecord<String, String> mockRecord = new ConsumerRecord<String, String>("Request-Job", 0, 0, "123456",
-				new ObjectMapper().writeValueAsString(mockStatus));
+		mockStatus.setJobId("123456");
 		Mockito.doNothing().when(accessor).updateJobStatus(eq("123456"), eq(StatusUpdate.STATUS_RUNNING));
 		Mockito.doNothing().when(accessor).updateJobProgress(eq("123456"), any(JobProgress.class));
 		when(accessor.getJobById(eq("123456"))).thenReturn(new Job());
@@ -193,6 +192,6 @@ public class HandlerTests {
 		Mockito.doNothing().when(accessor).addJob(any(Job.class));
 
 		// Test
-		updateJobHandler.process(mockRecord);
+		updateJobHandler.process(mockStatus);
 	}
 }

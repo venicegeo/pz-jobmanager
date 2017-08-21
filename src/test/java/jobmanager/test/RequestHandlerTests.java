@@ -15,25 +15,15 @@
  **/
 package jobmanager.test;
 
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.RequestJobHandler;
@@ -57,6 +47,8 @@ public class RequestHandlerTests {
 	private UUIDFactory uuidFactory;
 	@Mock
 	private Producer<String, String> producer;
+	@Mock
+	private RabbitTemplate rabbitTemplate;
 
 	@InjectMocks
 	private RequestJobHandler requestJobHandler;
@@ -67,18 +59,6 @@ public class RequestHandlerTests {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-
-		// Mock the Kafka response that Producers will send. This will always
-		// return a Future that completes immediately and simply returns true.
-		when(producer.send(isA(ProducerRecord.class))).thenAnswer(new Answer<Future<Boolean>>() {
-			@Override
-			public Future<Boolean> answer(InvocationOnMock invocation) throws Throwable {
-				Future<Boolean> future = mock(FutureTask.class);
-				when(future.isDone()).thenReturn(true);
-				when(future.get()).thenReturn(true);
-				return future;
-			}
-		});
 	}
 
 	/**
@@ -89,13 +69,9 @@ public class RequestHandlerTests {
 		// Mock
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
-
 		when(uuidFactory.getUUID()).thenReturn("654321");
-		ConsumerRecord<String, String> record = new ConsumerRecord<String, String>("Request-Job", 0, 0, new String(),
-				new ObjectMapper().writeValueAsString(mockRequest));
-		requestJobHandler.setProducer(producer);
 
 		// Test
-		requestJobHandler.process(record);
+		requestJobHandler.process(mockRequest, null);
 	}
 }

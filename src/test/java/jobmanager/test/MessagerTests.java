@@ -16,12 +16,8 @@
 package jobmanager.test;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -30,12 +26,17 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.JobMessager;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
+import model.job.JobProgress;
+import model.request.PiazzaJobRequest;
+import model.status.StatusUpdate;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -66,6 +67,8 @@ public class MessagerTests {
 	@InjectMocks
 	private JobMessager jobMessager;
 
+	private ObjectMapper mapper = new ObjectMapper();
+
 	/**
 	 * Setup tests
 	 */
@@ -73,12 +76,8 @@ public class MessagerTests {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 
-		// Mock the values for the Topic names
-		ReflectionTestUtils.setField(jobMessager, "UPDATE_JOB_TOPIC_NAME", "Update-Job");
-		ReflectionTestUtils.setField(jobMessager, "REQUEST_JOB_TOPIC_NAME", "Request-Job");
-		ReflectionTestUtils.setField(jobMessager, "KAFKA_HOSTS", "localhost:9092");
+		// Mocking Autowired values
 		ReflectionTestUtils.setField(jobMessager, "SPACE", "unit-test");
-		ReflectionTestUtils.setField(jobMessager, "KAFKA_GROUP", "job-unit-test");
 	}
 
 	/**
@@ -87,31 +86,15 @@ public class MessagerTests {
 	@Test
 	public void testProcessing() throws Exception {
 		// Create Kafka messages to pass to the Messager
-		ConsumerRecord<String, String> update = new ConsumerRecord<String, String>("Update-Job", 0, 0, null, null);
-		ConsumerRecord<String, String> request = new ConsumerRecord<String, String>("Request-Job", 0, 0, null, null);
+		StatusUpdate statusUpdate = new StatusUpdate(StatusUpdate.STATUS_RUNNING, new JobProgress());
+		PiazzaJobRequest jobRequest = new PiazzaJobRequest();
 
 		// Verify the Messages are appropriately handled
-		Mockito.doNothing().when(updateStatusHandler).process(any(ConsumerRecord.class));
-		jobMessager.processMessage(update);
+		Mockito.doNothing().when(updateStatusHandler).process(any(StatusUpdate.class));
+		jobMessager.processUpdateMessage(mapper.writeValueAsString(statusUpdate));
 
-		Mockito.doNothing().when(requestJobHandler).process(any(ConsumerRecord.class));
-		jobMessager.processMessage(request);
+		Mockito.doNothing().when(requestJobHandler).process(any(PiazzaJobRequest.class), Mockito.anyString());
+		jobMessager.processRequestMessage(mapper.writeValueAsString(jobRequest));
 	}
 
-	/**
-	 * Test initialization and listening loop
-	 */
-	@Test
-	public void testInitListening() throws Exception {
-		// Mock
-		Mockito.doNothing().when(consumer).subscribe(anyList());
-		ConsumerRecords<String, String> consumerRecords = new ConsumerRecords<String, String>(null);
-		Mockito.when(consumer.poll(anyLong())).thenReturn(consumerRecords);
-
-		// Test
-		jobMessager.initialize();
-
-		// Stop the listening Thread
-		jobMessager.stopPolling();
-	}
 }
