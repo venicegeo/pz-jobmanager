@@ -37,7 +37,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.client.RestClientException;
 
 import exception.PiazzaJobException;
 import jobmanager.controller.JobController;
@@ -263,8 +262,8 @@ public class JobControllerTests {
 		assertTrue(((JobResponse) response.getBody()).data.getJobId().equals("123456"));
 
 		// Test an Error
-//		Mockito.doThrow(new Exception("Error")).when(requestJobHandler).process(Mockito.any(), Mockito.any());
-//		response = jobController.requestJob(mockRequest, "");
-//		assertTrue(response.getBody() instanceof ErrorResponse);
+		// Mockito.doThrow(new Exception("Error")).when(requestJobHandler).process(Mockito.any(), Mockito.any());
+		// response = jobController.requestJob(mockRequest, "");
+		// assertTrue(response.getBody() instanceof ErrorResponse);
 	}
 }

@@ -20,10 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.apache.kafka.clients.producer.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +40,7 @@ import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
-import messaging.job.KafkaClientFactory;
 import model.job.Job;
-import model.job.JobProgress;
 import model.job.type.AbortJob;
 import model.job.type.RepeatJob;
 import model.logger.AuditElement;
@@ -64,9 +58,6 @@ import util.UUIDFactory;
 
 @RestController
 public class JobController {
-	@Value("${vcap.services.pz-kafka.credentials.host}")
-	private String KAFKA_HOSTS;
-
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
@@ -84,7 +75,6 @@ public class JobController {
 	@Value("${SPACE}")
 	private String SPACE;
 
-	private Producer<String, String> producer;
 	private static final String DEFAULT_PAGE_SIZE = "10";
 	private static final String DEFAULT_PAGE = "0";
 
@@ -92,19 +82,6 @@ public class JobController {
 	private static final String ERROR_MSG = "Job not found: %s";
 	private static final String JOB_MGR_UPPER = "Job Manager";
 	private static final String JOB_MGR_LOWER = "jobmanager";
-
-	/**
-	 * Initializing the Kafka Producer on Controller startup.
-	 */
-	@PostConstruct
-	public void init() {
-		producer = KafkaClientFactory.getProducer(KAFKA_HOSTS);
-	}
-
-	@PreDestroy
-	public void cleanup() {
-		producer.close();
-	}
 
 	/**
 	 * Healthcheck required for all Piazza Core Services

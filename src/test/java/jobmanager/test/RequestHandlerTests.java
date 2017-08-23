@@ -17,7 +17,6 @@ package jobmanager.test;
 
 import static org.mockito.Mockito.when;
 
-import org.apache.kafka.clients.producer.Producer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -45,8 +44,6 @@ public class RequestHandlerTests {
 	private DatabaseAccessor accessor;
 	@Mock
 	private UUIDFactory uuidFactory;
-	@Mock
-	private Producer<String, String> producer;
 	@Mock
 	private RabbitTemplate rabbitTemplate;
 

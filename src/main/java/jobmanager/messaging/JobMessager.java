@@ -47,11 +47,12 @@ public class JobMessager {
 	private UpdateStatusHandler updateStatusHandler;
 	@Autowired
 	private RequestJobHandler requestJobHandler;
+	@Autowired
+	private ObjectMapper mapper;
 
 	@Value("${SPACE}")
 	private String SPACE;
 
-	ObjectMapper mapper = new ObjectMapper();
 	private static final Logger LOG = LoggerFactory.getLogger(JobMessager.class);
 
 	public JobMessager() {
@@ -64,7 +65,7 @@ public class JobMessager {
 	 * @param message
 	 *            The Job Message Update, tied to the StatusUpdate POJO
 	 */
-	@RabbitListener(queues = "Update-Job-${SPACE}")
+	@RabbitListener(queues = "UpdateJob-${SPACE}")
 	public void processUpdateMessage(String statusUpdateString) {
 		try {
 			// Get the POJO
@@ -84,7 +85,7 @@ public class JobMessager {
 	 * @param requestJob
 	 *            The Job Request, tied to the PiazzaJobRequest POJO
 	 */
-	@RabbitListener(queues = "Request-Job-${SPACE}")
+	@RabbitListener(queues = "RequestJob-${SPACE}")
 	public void processRequestMessage(String requestJobString) {
 		try {
 			// Get the POJO

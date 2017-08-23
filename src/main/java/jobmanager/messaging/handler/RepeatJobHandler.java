@@ -15,8 +15,7 @@
  **/
 package jobmanager.messaging.handler;
 
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import exception.PiazzaJobException;
-import messaging.job.JobMessageFactory;
 import model.job.Job;
 import model.request.PiazzaJobRequest;
 
@@ -35,21 +33,11 @@ import model.request.PiazzaJobRequest;
  */
 @Component
 public class RepeatJobHandler {
+	@Autowired
+	private RequestJobHandler requestJobHandler;
+
 	@Value("${SPACE}")
 	private String SPACE;
-
-	private Producer<String, String> producer;
-
-	/**
-	 * Sets the producer for this Handler. Uses injection from the Job Messager in order to be efficient in creating
-	 * only one producer, as producers are thread-safe.
-	 * 
-	 * @param producer
-	 *            The producer.
-	 */
-	public void setProducer(Producer<String, String> producer) {
-		this.producer = producer;
-	}
 
 	/**
 	 * Processes a job request to repeat a Job within Piazza.
@@ -65,10 +53,9 @@ public class RepeatJobHandler {
 		PiazzaJobRequest newJobRequest = new PiazzaJobRequest();
 		newJobRequest.createdBy = job.getCreatedBy();
 		newJobRequest.jobType = job.getJobType();
+		newJobRequest.jobId = newRepeatJobId;
 
-		// Dispatch the Message to Repeat the selected Job. Create an Id so
-		// we can immediately attach a result to the RepeatJob request.
-		ProducerRecord<String, String> repeatJobMessage = JobMessageFactory.getRequestJobMessage(newJobRequest, newRepeatJobId, SPACE);
-		producer.send(repeatJobMessage);
+		// Process the Job Request
+		requestJobHandler.process(newJobRequest, newRepeatJobId);
 	}
 }

@@ -83,7 +83,7 @@ public class RequestJobHandler {
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
-			String queueName = String.format(JobMessageFactory.KAFKA_TOPIC_TEMPLATE, job.getJobType().getClass().getSimpleName(), SPACE);
+			String queueName = String.format(JobMessageFactory.TOPIC_TEMPLATE, job.getJobType().getClass().getSimpleName(), SPACE);
 			rabbitTemplate.convertAndSend(queueName, mapper.writeValueAsString(job));
 
 			// Log default to Piazza Logger

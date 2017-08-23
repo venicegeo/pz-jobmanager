@@ -17,13 +17,13 @@ package jobmanager.test;
 
 import static org.mockito.Matchers.any;
 
-import org.apache.kafka.clients.consumer.Consumer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,13 +61,11 @@ public class MessagerTests {
 	private RepeatJobHandler repeatJobHandler;
 	@Mock
 	private RequestJobHandler requestJobHandler;
-	@Mock
-	private Consumer<String, String> consumer;
+	@Spy
+	private ObjectMapper objectMapper;
 
 	@InjectMocks
 	private JobMessager jobMessager;
-
-	private ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * Setup tests
@@ -85,7 +83,10 @@ public class MessagerTests {
 	 */
 	@Test
 	public void testProcessing() throws Exception {
-		// Create Kafka messages to pass to the Messager
+		Mockito.doCallRealMethod().when(objectMapper).readValue(Mockito.anyString(), Mockito.eq(StatusUpdate.class));
+		Mockito.doCallRealMethod().when(objectMapper).readValue(Mockito.anyString(), Mockito.eq(PiazzaJobRequest.class));
+		ObjectMapper mapper = new ObjectMapper();
+		// Create messages to pass to the Messager
 		StatusUpdate statusUpdate = new StatusUpdate(StatusUpdate.STATUS_RUNNING, new JobProgress());
 		PiazzaJobRequest jobRequest = new PiazzaJobRequest();
 

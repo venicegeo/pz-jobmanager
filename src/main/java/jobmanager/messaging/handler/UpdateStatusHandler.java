@@ -41,10 +41,11 @@ public class UpdateStatusHandler {
 	private PiazzaLogger logger;
 	@Autowired
 	private DatabaseAccessor accessor;
+	@Autowired
+	ObjectMapper mapper;
 
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateStatusHandler.class);
-	ObjectMapper mapper = new ObjectMapper();
-
+	
 	@Async
 	public void process(StatusUpdate statusUpdate) {
 		// Changing the Status in the Job Table

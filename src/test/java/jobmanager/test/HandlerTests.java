@@ -17,27 +17,16 @@ package jobmanager.test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
@@ -68,8 +57,6 @@ public class HandlerTests {
 	private DatabaseAccessor accessor;
 	@Mock
 	private UUIDFactory uuidFactory;
-	@Mock
-	private Producer<String, String> producer;
 
 	@InjectMocks
 	private AbortJobHandler abortJobHandler;
@@ -106,18 +93,6 @@ public class HandlerTests {
 		repeatJobRequest = new PiazzaJobRequest();
 		repeatJobRequest.createdBy = "A";
 		repeatJobRequest.jobType = new RepeatJob("123456");
-
-		// Mock the Kafka response that Producers will send. This will always
-		// return a Future that completes immediately and simply returns true.
-		when(producer.send(isA(ProducerRecord.class))).thenAnswer(new Answer<Future<Boolean>>() {
-			@Override
-			public Future<Boolean> answer(InvocationOnMock invocation) throws Throwable {
-				Future<Boolean> future = mock(FutureTask.class);
-				when(future.isDone()).thenReturn(true);
-				when(future.get()).thenReturn(true);
-				return future;
-			}
-		});
 	}
 
 	/**
