@@ -14,7 +14,7 @@ full_name: Piazza Job Manager
 # What is the problem your project solves? What is the solution? Use the
 # format shown below. The #dashboard team will gladly help you put this
 # together for your project. (required)
-description: This component provides persistence for long-running Jobs (processes) as they pass throughout the application. PostgreSQL database is used for storing objects. Internally, this component also routes certain Kafka messages for when Jobs are requested to be created.
+description: This component provides persistence for long-running Jobs (processes) as they pass throughout the application. PostgreSQL database is used for storing objects. Internally, this component also routes certain messages for when Jobs are requested to be created.
 
 # What is the measurable impact of your project? Use the format shown below.
 # The #dashboard team will gladly help you put this together for your project.

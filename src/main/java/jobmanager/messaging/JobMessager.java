@@ -38,7 +38,7 @@ import model.status.StatusUpdate;
 import util.PiazzaLogger;
 
 /**
- * Interacts with the Jobs Collection in the database based on Kafka messages received.
+ * Interacts with the Jobs Collection in the database based on messages received.
  * 
  * @author Patrick.Doody
  * 
@@ -69,7 +69,7 @@ public class JobMessager {
 	 * @param message
 	 *            The Job Message Update, tied to the StatusUpdate POJO
 	 */
-	@RabbitListener(bindings = @QueueBinding(key = "UpdateJob-${SPACE}", value = @Queue(value = "JobManager", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
+	@RabbitListener(bindings = @QueueBinding(key = "UpdateJob-${SPACE}", value = @Queue(value = "JobManagerUpdate", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
 	public void processUpdateMessage(String statusUpdateString) {
 		try {
 			// Get the POJO
@@ -89,7 +89,7 @@ public class JobMessager {
 	 * @param requestJob
 	 *            The Job Request, tied to the PiazzaJobRequest POJO
 	 */
-	@RabbitListener(bindings = @QueueBinding(key = "RequestJob-${SPACE}", value = @Queue(value = "JobManager", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
+	@RabbitListener(bindings = @QueueBinding(key = "RequestJob-${SPACE}", value = @Queue(value = "JobManagerRequest", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
 	public void processRequestMessage(String requestJobString) {
 		try {
 			// Get the POJO

@@ -95,7 +95,7 @@ public class JobController {
 
 	/**
 	 * Returns the Job Status and potential Results of the specified Job Id. This is used when the Gateway needs a
-	 * synchronous, non-Kafka, response for the specific status of a Job.
+	 * synchronous response for the specific status of a Job.
 	 * 
 	 * @param jobId
 	 *            The Job Id.
@@ -132,7 +132,7 @@ public class JobController {
 
 	/**
 	 * Sends a new Piazza Job Request to the Job Manager. This will add a new entry in the Jobs table for the request,
-	 * and will also proxy off the Kafka message to the worker components.
+	 * and will also proxy off the message to the worker components.
 	 * 
 	 * @param request
 	 *            The job request
@@ -150,7 +150,7 @@ public class JobController {
 
 		try {
 
-			// Create the Job and send off the Job Kafka message
+			// Create the Job and send off the Job message
 			requestJobHandler.process(request, finalJobId);
 			// Return to the user the Job Id.
 			return new ResponseEntity<PiazzaResponse>(new JobResponse(finalJobId), HttpStatus.OK);
