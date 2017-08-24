@@ -19,6 +19,9 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jobmanager.messaging.handler.RequestJobHandler;
 import jobmanager.messaging.handler.UpdateStatusHandler;
+import messaging.job.JobMessageFactory;
 import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
@@ -65,7 +69,7 @@ public class JobMessager {
 	 * @param message
 	 *            The Job Message Update, tied to the StatusUpdate POJO
 	 */
-	@RabbitListener(queues = "UpdateJob-${SPACE}")
+	@RabbitListener(bindings = @QueueBinding(key = "UpdateJob-${SPACE}", value = @Queue(value = "JobManager", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
 	public void processUpdateMessage(String statusUpdateString) {
 		try {
 			// Get the POJO
@@ -80,12 +84,12 @@ public class JobMessager {
 	}
 
 	/**
-	 * Processes a message coming in throughu the queue to request a job
+	 * Processes a message coming in through the queue to request a job
 	 * 
 	 * @param requestJob
 	 *            The Job Request, tied to the PiazzaJobRequest POJO
 	 */
-	@RabbitListener(queues = "RequestJob-${SPACE}")
+	@RabbitListener(bindings = @QueueBinding(key = "RequestJob-${SPACE}", value = @Queue(value = "JobManager", autoDelete = "true", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
 	public void processRequestMessage(String requestJobString) {
 		try {
 			// Get the POJO
