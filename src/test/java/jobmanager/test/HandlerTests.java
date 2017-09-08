@@ -39,7 +39,7 @@ import org.mockito.stubbing.Answer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
 import jobmanager.messaging.handler.RequestJobHandler;
@@ -65,7 +65,7 @@ public class HandlerTests {
 	@Mock
 	private PiazzaLogger logger;
 	@Mock
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Mock
 	private UUIDFactory uuidFactory;
 	@Mock
@@ -93,10 +93,10 @@ public class HandlerTests {
 
 		// Mock a Job
 		mockJob = new Job();
-		mockJob.jobId = UUID.randomUUID().toString();
-		mockJob.status = StatusUpdate.STATUS_RUNNING;
-		mockJob.progress = new JobProgress(75);
-		mockJob.jobType = new IngestJob();
+		mockJob.setJobId(UUID.randomUUID().toString());
+		mockJob.setStatus(StatusUpdate.STATUS_RUNNING);
+		mockJob.setProgress(new JobProgress(75));
+		mockJob.setJobType(new IngestJob());
 
 		// Mock Requests
 		mockAbortRequest = new PiazzaJobRequest();
@@ -139,7 +139,7 @@ public class HandlerTests {
 	public void testAbortPermissionError() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.createdBy = "B";
+		mockCancelJob.setCreatedBy("B");
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 
 		// Test
@@ -152,8 +152,8 @@ public class HandlerTests {
 	public void testAbortCancelledJob() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.createdBy = "A";
-		mockCancelJob.status = StatusUpdate.STATUS_CANCELLED;
+		mockCancelJob.setCreatedBy("A");
+		mockCancelJob.setStatus(StatusUpdate.STATUS_CANCELLED);
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 
 		// Test
@@ -167,8 +167,8 @@ public class HandlerTests {
 	public void testAbortJob() throws Exception {
 		// Mock
 		Job mockCancelJob = new Job();
-		mockCancelJob.createdBy = "A";
-		mockCancelJob.status = StatusUpdate.STATUS_RUNNING;
+		mockCancelJob.setCreatedBy("A");
+		mockCancelJob.setStatus(StatusUpdate.STATUS_RUNNING);
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
 		Mockito.doNothing().when(accessor).updateJobStatus(eq("123456"), eq(StatusUpdate.STATUS_CANCELLED));
 
