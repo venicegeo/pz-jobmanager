@@ -98,7 +98,7 @@ public class DatabaseAccessor {
 	public JobListResponse getJobs(int page, int perPage, String order, String sortBy, String status, String userName) {
 		// Execute the appropriate query based on the nullable, optional parameters
 		Pagination pagination = new Pagination(null, page, perPage, sortBy, order);
-		Page<JobEntity> results = null;
+		Page<JobEntity> results;
 
 		if (StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(status)) {
 			// Both parameters specified
