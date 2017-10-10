@@ -131,7 +131,7 @@ node {
         try {
           sh "cf start ${appName}"
         } catch (Exception e) {
-          //sh "cf logs --recent ${appName}"
+          sh "cf logs --recent ${appName}"
           sh "cf delete ${appName} -f -r"
           error("Error during application start. Deleting ${appName} and failing the build.")
         }
@@ -205,7 +205,7 @@ node {
         try {
           sh "cf start ${appName}"
         } catch (Exception e) {
-          //sh "cf logs --recent ${appName}"
+          sh "cf logs --recent ${appName}"
           sh "cf delete ${appName} -f -r"
           error("Error during application start. Deleting ${appName} and failing the build.")
         }
