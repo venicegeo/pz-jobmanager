@@ -25,6 +25,7 @@ import exception.PiazzaJobException;
 import jobmanager.database.DatabaseAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
+import model.logger.AuditElement;
 import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
@@ -75,6 +76,7 @@ public class AbortJobHandler {
 		String currentStatus = jobToCancel.getStatus();
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
+			logger.log("Requesting Job Cancellation", Severity.INFORMATIONAL, new AuditElement(request.createdBy, "cancellingJob", jobToCancel.getJobId()));
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLING);
 		} else {
 			String error = String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId());
