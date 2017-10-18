@@ -15,14 +15,17 @@
  **/
 package jobmanager.messaging.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 
 import exception.PiazzaJobException;
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import model.job.Job;
 import model.job.type.AbortJob;
+import model.logger.AuditElement;
 import model.logger.Severity;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
@@ -39,7 +42,9 @@ public class AbortJobHandler {
 	@Autowired
 	private PiazzaLogger logger;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
+
+	private static final Logger LOG = LoggerFactory.getLogger(AbortJobHandler.class);
 
 	/**
 	 * Processes a Job request to cancel a Piazza job.
@@ -47,20 +52,31 @@ public class AbortJobHandler {
 	 * @param request
 	 *            Job request.
 	 */
-	public void process(PiazzaJobRequest request) throws ResourceAccessException, InterruptedException, PiazzaJobException {
-		AbortJob abortJob = (AbortJob) request.jobType;
-		Job jobToCancel = accessor.getJobById(abortJob.getJobId());
+	public void process(PiazzaJobRequest request) throws PiazzaJobException {
+		final AbortJob abortJob = (AbortJob) request.jobType;
+		Job jobToCancel = null;
+		
+		try {
+			jobToCancel = accessor.getJobById(abortJob.getJobId());
+		} catch (ResourceAccessException | InterruptedException e) {
+			String error = String.format("Could not retrieve Abort Job by ID: %s", abortJob.getJobId());
+			LOG.info(error, e);
+			logger.log(error, Severity.INFORMATIONAL);
+		}
+		
 		if (jobToCancel == null) {
 			throw new PiazzaJobException(String.format("No job could be founding matching Id %s", abortJob.getJobId()));
 		}
+		
 		// Ensure the user has permission to cancel the Job.
-		if ((jobToCancel.createdBy == null) || (!jobToCancel.createdBy.equals(request.createdBy))) {
+		if ((jobToCancel.getCreatedBy() == null) || (!jobToCancel.getCreatedBy().equals(request.createdBy))) {
 			throw new PiazzaJobException(
 					String.format("Could not Abort Job %s because it was not requested by the originating user.", abortJob.getJobId()));
 		}
-		String currentStatus = jobToCancel.status;
+		String currentStatus = jobToCancel.getStatus();
 		if ((currentStatus.equals(StatusUpdate.STATUS_RUNNING)) || (currentStatus.equals(StatusUpdate.STATUS_PENDING))
 				|| (currentStatus.equals(StatusUpdate.STATUS_SUBMITTED))) {
+			logger.log("Requesting Job Cancellation", Severity.INFORMATIONAL, new AuditElement(request.createdBy, "cancellingJob", jobToCancel.getJobId()));
 			accessor.updateJobStatus(abortJob.getJobId(), StatusUpdate.STATUS_CANCELLING);
 		} else {
 			String error = String.format("Could not Abort Job %s because it is no longer running.", abortJob.getJobId());

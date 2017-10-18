@@ -18,7 +18,7 @@
 	<repositories>
 		<repository>
 			<id>nexus</id>
-			<url>https://nexus.devops.geointservices.io/content/repositories/Piazza-Group/</url>
+			<url>${env.ARTIFACT_STORAGE_URL}</url>
 		</repository>
 	</repositories>
 
@@ -26,6 +26,17 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.1.1</version>
 		</dependency>
 
 		<dependency>
@@ -37,18 +48,13 @@
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
+			<version>2.9.4</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.venice.piazza</groupId>
 			<artifactId>pz-jobcommon</artifactId>
-			<version>elastic6</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.mongojack</groupId>
-			<artifactId>mongojack</artifactId>
-			<version>2.1.0</version>
+			<version>1-0-2-4-g22ef4cf</version>
 		</dependency>
 
 		<dependency>
@@ -81,7 +87,7 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 		    <groupId>org.elasticsearch</groupId>
 		    <artifactId>elasticsearch</artifactId>
@@ -95,11 +101,17 @@
 		    <version>5.4.0</version>
 		</dependency>
 
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-lang3</artifactId>
+		    <version>3.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<properties>
 		<java.version>1.8</java.version>
-		<!-- sonar.exclusions>**/Application.java, **/MongoAccessor.java</sonar.exclusions -->
+		<!-- sonar.exclusions>**/Application.java, **/DatabaseAccessor.java</sonar.exclusions -->
 	</properties>
 
 	<profiles>

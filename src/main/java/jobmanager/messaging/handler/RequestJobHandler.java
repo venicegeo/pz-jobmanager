@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jobmanager.database.MongoAccessor;
+import jobmanager.database.DatabaseAccessor;
 import messaging.job.JobMessageFactory;
 import model.job.Job;
 import model.logger.AuditElement;
@@ -50,13 +50,13 @@ public class RequestJobHandler {
 	@Autowired
 	private UUIDFactory uuidFactory;
 	@Autowired
-	private MongoAccessor accessor;
+	private DatabaseAccessor accessor;
 	@Value("${SPACE}")
 	private String SPACE;
 	@Value("${logger.console.job.payloads:false}")
 	private Boolean logJobPayloadsToConsole;
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(RequestJobHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RequestJobHandler.class);
 	private Producer<String, String> producer;
 	ObjectMapper mapper = new ObjectMapper();
 
@@ -88,7 +88,7 @@ public class RequestJobHandler {
 		} catch (Exception exception) {
 			String error = String.format("Error Processing Request-Job Topic %s with key %s with Error: %s", consumerRecord.topic(),
 					consumerRecord.key(), exception.getMessage());
-			LOGGER.error(error, exception);
+			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR);
 		}
 	}
@@ -113,7 +113,7 @@ public class RequestJobHandler {
 				job.setJobId(uuidFactory.getUUID());
 			}
 			// Commit the Job metadata to the Jobs table
-			accessor.getJobCollection().insert(job);
+			accessor.addJob(job);
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
@@ -123,12 +123,12 @@ public class RequestJobHandler {
 			logger.log(String.format("Relayed Job Id %s for Type %s on Kafka topic %s", job.getJobId(), job.getJobType().getClass().getSimpleName(), message.topic()),
 					Severity.INFORMATIONAL, new AuditElement(jobRequest.createdBy, "relayedJobCreation", jobId));
 			// If extended logging is enabled, then log the payload of the job.
-			if (logJobPayloadsToConsole.booleanValue()) {
-				LOGGER.info(String.format("Job Id %s payload was: %s", job.getJobId(), new ObjectMapper().writeValueAsString(job)));
+			if (logJobPayloadsToConsole.booleanValue() && LOG.isInfoEnabled()) {
+				LOG.info(String.format("Job Id %s payload was: %s", job.getJobId(), new ObjectMapper().writeValueAsString(job)));
 			}
 		} catch (Exception exception) {
 			String error = String.format("Error Processing Request-Job with error %s", exception.getMessage());
-			LOGGER.error(error, exception);
+			LOG.error(error, exception);
 			logger.log(error, Severity.ERROR);
 		}
 	}

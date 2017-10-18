@@ -42,7 +42,7 @@ import model.logger.Severity;
 import util.PiazzaLogger;
 
 /**
- * Interacts with the Jobs Collection in the Mongo database based on Kafka messages received.
+ * Interacts with the Jobs Collection in the database based on Kafka messages received.
  * 
  * @author Patrick.Doody
  * 
@@ -71,12 +71,10 @@ public class JobMessager {
 	private Consumer<String, String> consumer;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(JobMessager.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JobMessager.class);
 
-	/**
-	 * Expected for Component instantiation
-	 */
 	public JobMessager() {
+		// Expected for Component instantiation
 	}
 
 	@PostConstruct
@@ -92,6 +90,7 @@ public class JobMessager {
 		requestJobHandler.setProducer(producer);
 		// Immediately Poll on a new thread
 		Thread pollThread = new Thread() {
+			@Override
 			public void run() {
 				poll();
 			}
@@ -114,16 +113,7 @@ public class JobMessager {
 			while (!closed.get()) {
 				ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
 				// Handle new Messages on this topic.
-				for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
-					try {
-						processMessage(consumerRecord);
-					} catch (Exception exception) {
-						String error = String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
-								consumerRecord.topic(), exception.getMessage());
-						LOGGER.error(error, exception);
-						logger.log(error, Severity.ERROR, new AuditElement("jobmanager", "errorProcessingKafkaJob", consumerRecord.key()));
-					}
-				}
+				handleNewMessage(consumerRecords);
 			}
 		} catch (WakeupException exception) {
 			logger.log(String.format("Job Listener Thread forcefully shut: %s", exception.getMessage()), Severity.ERROR);
@@ -136,6 +126,19 @@ public class JobMessager {
 		}
 	}
 
+	private void handleNewMessage(final ConsumerRecords<String,String> consumerRecords) {
+		for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
+			try {
+				processMessage(consumerRecord);
+			} catch (Exception exception) {
+				String error = String.format("Error processing Job with Key %s under Topic %s. Error: %s", consumerRecord.key(),
+						consumerRecord.topic(), exception.getMessage());
+				LOG.error(error, exception);
+				logger.log(error, Severity.ERROR, new AuditElement("jobmanager", "errorProcessingKafkaJob", consumerRecord.key()));
+			}
+		}
+	}
+	
 	/**
 	 * Stops polling.
 	 */
