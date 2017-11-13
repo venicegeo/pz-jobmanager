@@ -9,7 +9,7 @@ applications:
   services:
     - pz-rabbitmq
     - pz-elasticsearch
-    - pz-geoserver-efs
+    - pz-postgres
   env:
     SPRING_PROFILES_ACTIVE: cloud
     JBP_CONFIG_OPEN_JDK_JRE: '{ memory_calculator : { memory_sizes : { heap : 512m } } }'
