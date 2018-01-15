@@ -54,7 +54,7 @@
 		<dependency>
 			<groupId>org.venice.piazza</groupId>
 			<artifactId>pz-jobcommon</artifactId>
-			<version>1-0-2-4-g22ef4cf</version>
+			<version>UC-VERS-UP</version>
 		</dependency>
 
 		<dependency>
@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.3.5.RELEASE</version>
+			<version>4.3.12.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 
