@@ -8,7 +8,6 @@ applications:
   timeout: 80
   services:
     - pz-rabbitmq
-    - pz-elasticsearch
     - pz-postgres
   env:
     SPRING_PROFILES_ACTIVE: cloud
