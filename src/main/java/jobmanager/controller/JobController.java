@@ -302,7 +302,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/job/status", method = RequestMethod.GET)
 	public List<String> getStatuses() {
-		List<String> statuses = new ArrayList<String>();
+		List<String> statuses = new ArrayList<>();
 		statuses.add(StatusUpdate.STATUS_CANCELLED);
 		statuses.add(StatusUpdate.STATUS_CANCELLING);
 		statuses.add(StatusUpdate.STATUS_ERROR);
@@ -334,7 +334,7 @@ public class JobController {
 	 */
 	@RequestMapping(value = "/admin/stats", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getAdminStats() {
-		Map<String, Object> stats = new HashMap<String, Object>();
+		Map<String, Object> stats = new HashMap<>();
 		// Add information related to the Jobs in the system
 		stats.put("total", accessor.getJobsCount());
 		stats.put("success", getStatusCount(StatusUpdate.STATUS_SUCCESS));
