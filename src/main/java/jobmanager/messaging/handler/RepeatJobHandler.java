@@ -46,7 +46,7 @@ public class RepeatJobHandler {
 	 *            The request, detailing the user and the job to be repeated.
 	 */
 	@Async
-	public void process(Job job, String newRepeatJobId) throws JsonProcessingException, PiazzaJobException {
+	public void process(Job job, String newRepeatJobId) {
 		// Create a new JobRequest object. The Submitter will be the user
 		// who requested the Job to be repeated. The Job Type will be the
 		// Type of the Job that is to be repeated.

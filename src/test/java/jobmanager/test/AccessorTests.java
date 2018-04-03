@@ -1,11 +1,9 @@
 package jobmanager.test;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jobmanager.database.DatabaseAccessor;
 import model.job.Job;
 import model.job.JobProgress;
 import model.job.result.ResultType;
-import model.response.JobListResponse;
 import model.response.Pagination;
 import model.status.StatusUpdate;
 import org.junit.Assert;
@@ -19,13 +17,8 @@ import org.springframework.data.domain.Page;
 import org.venice.piazza.common.hibernate.dao.job.JobDao;
 import org.venice.piazza.common.hibernate.entity.JobEntity;
 
-import javax.swing.text.html.parser.Entity;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class AccessorTests {
@@ -60,8 +53,7 @@ public class AccessorTests {
     }
 
     @Test
-    public void testGetJobyById()
-            throws InterruptedException {
+    public void testGetJobyById() {
         String jobIdNull = "null_job_id";
         String jobIdValid = "valid_job_id";
 
@@ -72,8 +64,8 @@ public class AccessorTests {
         when(this.jobDao.getJobByJobId(jobIdNull)).thenReturn(null);
         when(this.jobDao.getJobByJobId(jobIdValid)).thenReturn(jobEntity);
 
-        Assert.assertEquals(this.databaseAccessor.getJobById(jobIdNull), null);
-        Assert.assertEquals(this.databaseAccessor.getJobById(jobIdValid), job);
+        Assert.assertEquals(null, this.databaseAccessor.getJobById(jobIdNull));
+        Assert.assertEquals(job, this.databaseAccessor.getJobById(jobIdValid));
     }
 
     @Test
@@ -113,7 +105,7 @@ public class AccessorTests {
         this.databaseAccessor.updateJobStatus("my_job_id", "my_status");
         this.databaseAccessor.updateJobStatus("invalid_job_id", "my_invalid_status");
 
-        Assert.assertEquals(job.getStatus(), "my_status");
+        Assert.assertEquals("my_status", job.getStatus());
     }
 
     @Test
@@ -132,7 +124,7 @@ public class AccessorTests {
     }
 
     @Test
-    public void testUpdateJobStatus2Params() throws InterruptedException {
+    public void testUpdateJobStatus2Params()  {
         JobEntity entity = new JobEntity(new Job());
         entity.getJob().setJobId("my_job_id");
         JobProgress progress = Mockito.mock(JobProgress.class);

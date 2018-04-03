@@ -169,7 +169,7 @@ public class JobControllerTests {
 	 * Test /repeat
 	 */
 	@Test
-	public void testRepeat() throws Exception {
+	public void testRepeat()  {
 		// Mock
 		when(accessor.getJobById(eq("123456"))).thenReturn(mockJob);
 		when(uuidFactory.getUUID()).thenReturn("123456");
@@ -184,11 +184,6 @@ public class JobControllerTests {
 		// Verify
 		assertTrue(response instanceof JobResponse);
 		assertTrue(((JobResponse) response).data.getJobId().equals("123456"));
-
-		// Test Exception
-		Mockito.doThrow(new PiazzaJobException("Error")).when(repeatJobHandler).process(any(Job.class), any(String.class));
-		response = jobController.repeatJob(new PiazzaJobRequest()).getBody();
-		assertTrue(response instanceof ErrorResponse);
 	}
 
 	/**
