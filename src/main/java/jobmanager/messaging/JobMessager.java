@@ -55,7 +55,7 @@ public class JobMessager {
 	private ObjectMapper mapper;
 
 	@Value("${SPACE}")
-	private String SPACE;
+	private String space;
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobMessager.class);
 
@@ -66,7 +66,7 @@ public class JobMessager {
 	/**
 	 * Processes a message coming in through the queue to update a job
 	 * 
-	 * @param message
+	 * @param statusUpdateString
 	 *            The Job Message Update, tied to the StatusUpdate POJO
 	 */
 	@RabbitListener(bindings = @QueueBinding(key = "UpdateJob-${SPACE}", value = @Queue(value = "JobManagerUpdate-${SPACE}", autoDelete = "false", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))
@@ -86,7 +86,7 @@ public class JobMessager {
 	/**
 	 * Processes a message coming in through the queue to request a job
 	 * 
-	 * @param requestJob
+	 * @param requestJobString
 	 *            The Job Request, tied to the PiazzaJobRequest POJO
 	 */
 	@RabbitListener(bindings = @QueueBinding(key = "RequestJob-${SPACE}", value = @Queue(value = "JobManagerRequest-${SPACE}", autoDelete = "false", durable = "true"), exchange = @Exchange(value = JobMessageFactory.PIAZZA_EXCHANGE_NAME, autoDelete = "false", durable = "true")))

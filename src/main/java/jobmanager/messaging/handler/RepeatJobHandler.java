@@ -34,7 +34,7 @@ public class RepeatJobHandler {
     private RequestJobHandler requestJobHandler;
 
     @Value("${SPACE}")
-    private String SPACE;
+    private String space;
 
     /**
      * Processes a job request to repeat a Job within Piazza.

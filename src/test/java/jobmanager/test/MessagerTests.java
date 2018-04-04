@@ -78,7 +78,7 @@ public class MessagerTests {
 		MockitoAnnotations.initMocks(this);
 
 		// Mocking Autowired values
-		ReflectionTestUtils.setField(jobMessager, "SPACE", "unit-test");
+		ReflectionTestUtils.setField(jobMessager, "space", "unit-test");
 	}
 
 	/**

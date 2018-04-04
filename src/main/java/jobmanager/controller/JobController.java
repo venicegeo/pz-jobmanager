@@ -73,7 +73,7 @@ public class JobController {
 	@Autowired
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@Value("${SPACE}")
-	private String SPACE;
+	private String space;
 
 	private static final String DEFAULT_PAGE_SIZE = "10";
 	private static final String DEFAULT_PAGE = "0";
@@ -349,6 +349,6 @@ public class JobController {
 		if (threadPoolTaskExecutor.getThreadPoolExecutor() != null) {
 			stats.put("threadQueue", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
 		}
-		return new ResponseEntity<Map<String, Object>>(stats, HttpStatus.OK);
+		return new ResponseEntity<>(stats, HttpStatus.OK);
 	}
 }

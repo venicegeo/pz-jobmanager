@@ -51,7 +51,7 @@ public class RequestJobHandler {
 	@Autowired
 	private DatabaseAccessor accessor;
 	@Value("${SPACE}")
-	private String SPACE;
+	private String space;
 	@Value("${logger.console.job.payloads:false}")
 	private Boolean logJobPayloadsToConsole;
 
@@ -83,7 +83,7 @@ public class RequestJobHandler {
 			// Send the content of the actual Job under the
 			// topic name of the Job type for all workers to
 			// listen to.
-			String queueName = String.format(JobMessageFactory.TOPIC_TEMPLATE, job.getJobType().getClass().getSimpleName(), SPACE);
+			String queueName = String.format(JobMessageFactory.TOPIC_TEMPLATE, job.getJobType().getClass().getSimpleName(), space);
 			rabbitTemplate.convertAndSend(JobMessageFactory.PIAZZA_EXCHANGE_NAME, queueName, mapper.writeValueAsString(job));
 
 			// Log default to Piazza Logger
