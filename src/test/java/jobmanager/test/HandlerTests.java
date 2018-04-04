@@ -16,12 +16,16 @@
 package jobmanager.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
 import exception.PiazzaJobException;
+import javafx.print.PrinterJob;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -42,7 +46,10 @@ import model.job.type.IngestJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
+import org.mockito.internal.verification.Times;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.ResourceAccessException;
+import sun.reflect.Reflection;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -58,13 +65,13 @@ public class HandlerTests {
     private DatabaseAccessor accessor;
     @Mock
     private UUIDFactory uuidFactory;
+    @Mock
+    private RequestJobHandler requestJobHandler;
 
     @InjectMocks
     private AbortJobHandler abortJobHandler;
     @InjectMocks
     private RepeatJobHandler repeatJobHandler;
-    @InjectMocks
-    private RequestJobHandler requestJobHandler;
     @InjectMocks
     private UpdateStatusHandler updateJobHandler;
 
@@ -94,6 +101,9 @@ public class HandlerTests {
         repeatJobRequest = new PiazzaJobRequest();
         repeatJobRequest.createdBy = "A";
         repeatJobRequest.jobType = new RepeatJob("123456");
+
+        //The InjectMocks annotation doesn't seem to be setting this field.
+        //ReflectionTestUtils.setField(repeatJobHandler, "requestJobHandler", this.requestJobHandler);
     }
 
     /**
@@ -198,5 +208,17 @@ public class HandlerTests {
 
         // Test
         updateJobHandler.process(mockStatus);
+
+        doThrow(RuntimeException.class).when(this.accessor).updateJobStatus(eq("error_job_id"), any(StatusUpdate.class));
+        StatusUpdate errorReq = new StatusUpdate();
+        errorReq.setJobId("error_job_id");
+        updateJobHandler.process(errorReq);
+    }
+
+    @Test
+    public void testRepeatJob() {
+        this.repeatJobHandler.process(mockJob, "my_repeat_job_id");
+
+        Mockito.verify(this.requestJobHandler, times(1)).process(any(), anyString());
     }
 }
