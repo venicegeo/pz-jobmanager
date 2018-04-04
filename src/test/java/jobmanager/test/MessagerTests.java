@@ -16,6 +16,7 @@
 package jobmanager.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +40,8 @@ import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
 import util.PiazzaLogger;
 import util.UUIDFactory;
+
+import java.io.IOException;
 
 /**
  * Tests the Job Messager
@@ -95,6 +98,11 @@ public class MessagerTests {
 		jobMessager.processUpdateMessage(mapper.writeValueAsString(statusUpdate));
 
 		Mockito.doNothing().when(requestJobHandler).process(any(PiazzaJobRequest.class), Mockito.anyString());
+		jobMessager.processRequestMessage(mapper.writeValueAsString(jobRequest));
+
+		//Test the exceptions.
+		Mockito.doThrow(new IOException()).when(objectMapper).readValue(anyString(), any(Class.class));
+		jobMessager.processUpdateMessage(mapper.writeValueAsString(statusUpdate));
 		jobMessager.processRequestMessage(mapper.writeValueAsString(jobRequest));
 	}
 

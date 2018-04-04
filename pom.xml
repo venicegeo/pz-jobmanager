@@ -16,10 +16,11 @@
 	</parent>
 
 	<repositories>
-		<repository>
-			<id>nexus</id>
-			<url>${env.ARTIFACT_STORAGE_URL}</url>
-		</repository>
+		<!--<repository>-->
+			<!--<id>nexus</id>-->
+			<!--<url>${env.ARTIFACT_STORAGE_URL}</url>-->
+		<!--</repository>-->
+
 	</repositories>
 
 	<dependencies>
@@ -70,7 +71,7 @@
 		<dependency>
 			<groupId>org.venice.piazza</groupId>
 			<artifactId>pz-jobcommon</artifactId>
-			<version>2-0-1-s4-0-gb51fe13</version>
+			<version>LATEST</version>
 		</dependency>
 
 		<dependency>

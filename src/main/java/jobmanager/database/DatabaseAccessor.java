@@ -72,7 +72,7 @@ public class DatabaseAccessor {
 	 * @param jobId
 	 *            Job Id
 	 * @return The Job with the specified Id
-	 * @throws InterruptedException
+	 * @throws org.springframework.web.client.ResourceAccessException
 	 */
 	public Job getJobById(String jobId) {
 		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
