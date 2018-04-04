@@ -15,35 +15,27 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import util.PiazzaLogger;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-@TestPropertySource(locations="classpath:test.properties")
 public class ApplicationTests {
 
-    @Configuration
-    static class ContextConfiguration {
-
-        // this bean will be injected into the Application class
-        @Bean
-        public Application orderService() {
-            return new Application();
-        }
-    }
-
-    @Autowired
-    private Application application;
+    //@Mock
+    private Application application = new Application();
 
     /**
      * Initialize Mock objects.
      */
     @Before
     public void setup() {
+
         MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(application, "threadCountSize", 100);
+        ReflectionTestUtils.setField(application, "threadCountLimit", 500);
     }
 
     @Test
@@ -63,7 +55,4 @@ public class ApplicationTests {
 
         Assert.assertNotNull(handler);
     }
-
-
-
 }

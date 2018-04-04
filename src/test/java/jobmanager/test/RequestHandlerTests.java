@@ -15,6 +15,7 @@
  **/
 package jobmanager.test;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
@@ -28,6 +29,7 @@ import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.RequestJobHandler;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -56,6 +58,8 @@ public class RequestHandlerTests {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(requestJobHandler, "logJobPayloadsToConsole", true);
 	}
 
 	/**
@@ -70,5 +74,10 @@ public class RequestHandlerTests {
 
 		// Test
 		requestJobHandler.process(mockRequest, null);
+
+		requestJobHandler.process(mockRequest, "");
+
+		requestJobHandler.process(mockRequest, "123456");
+
 	}
 }
