@@ -158,7 +158,7 @@ public class HandlerTests {
         when(accessor.getJobById(eq("123456"))).thenReturn(mockCancelJob);
         Mockito.doNothing().when(accessor).updateJobStatus(eq("123456"), eq(StatusUpdate.STATUS_CANCELLED));
 
-        // Test
+        // Test several cases for coverage.
         mockCancelJob.setStatus(StatusUpdate.STATUS_RUNNING);
         abortJobHandler.process(mockAbortRequest);
 
@@ -177,7 +177,7 @@ public class HandlerTests {
         PiazzaJobRequest errorReq = new PiazzaJobRequest();
         errorReq.jobType = new AbortJob("missing_job_id");
 
-        //Test a non existent job.
+        //Test that a non-existent job causes an exception.
         abortJobHandler.process(errorReq);
     }
 
@@ -186,7 +186,7 @@ public class HandlerTests {
         PiazzaJobRequest errorReq = new PiazzaJobRequest();
         errorReq.jobType = new AbortJob("error_job_id");
 
-        //Test when an unchecked exception is thrown.
+        //Test that unchecked exceptions are caught and converted to PiazzaJobException.
         Mockito.when(accessor.getJobById("error_job_id")).thenThrow(ResourceAccessException.class);
         abortJobHandler.process(errorReq);
     }
@@ -209,6 +209,7 @@ public class HandlerTests {
         // Test
         updateJobHandler.process(mockStatus);
 
+        //Test the exception case for coverage.
         doThrow(RuntimeException.class).when(this.accessor).updateJobStatus(eq("error_job_id"), any(StatusUpdate.class));
         StatusUpdate errorReq = new StatusUpdate();
         errorReq.setJobId("error_job_id");
