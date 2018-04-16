@@ -18,10 +18,12 @@ package jobmanager.test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import model.job.Job;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
@@ -66,18 +68,21 @@ public class RequestHandlerTests {
 	 * Test requesting a Job
 	 */
 	@Test
-	public void testRequestJob() throws Exception {
+	public void testRequestJob()  {
 		// Mock
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
 		when(uuidFactory.getUUID()).thenReturn("654321");
 
-		// Test
-		requestJobHandler.process(mockRequest, null);
-
+		//Test with an empty id. One should be assigned.
 		requestJobHandler.process(mockRequest, "");
+		Mockito.verify(this.accessor, Mockito.times(1)).addJob(Mockito.any(Job.class));
 
+		//Test with a random id.
 		requestJobHandler.process(mockRequest, "123456");
+		Mockito.verify(this.accessor, Mockito.times(2)).addJob(Mockito.any(Job.class));
 
+		//Generate a nullPointer exception. It should not propagate up.
+		requestJobHandler.process(mockRequest, null);
 	}
 }
