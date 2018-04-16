@@ -130,16 +130,19 @@ public class AccessorTests {
         JobProgress progress = Mockito.mock(JobProgress.class);
         ResultType resultType = Mockito.mock(ResultType.class);
 
+        //Mock an empty job status.
         StatusUpdate emptyStatus = Mockito.mock(StatusUpdate.class);
         Mockito.when(emptyStatus.getStatus()).thenReturn("");
         Mockito.when(emptyStatus.getProgress()).thenReturn(null);
         Mockito.when(emptyStatus.getResult()).thenReturn(null);
 
+        //Mock an invalid job status.
         StatusUpdate badStatus = Mockito.mock(StatusUpdate.class);
         Mockito.when(badStatus.getStatus()).thenReturn("my_invalid_status");
         Mockito.when(badStatus.getProgress()).thenReturn(Mockito.mock(JobProgress.class));
         Mockito.when(badStatus.getResult()).thenReturn(Mockito.mock(ResultType.class));
 
+        //Mock a good job status.
         StatusUpdate validStatus = Mockito.mock(StatusUpdate.class);
         Mockito.when(validStatus.getStatus()).thenReturn("my_status");
         Mockito.when(validStatus.getProgress()).thenReturn(progress);
@@ -161,7 +164,11 @@ public class AccessorTests {
     @Test
     public void testRemoveJob() {
         Mockito.when(this.jobDao.getJobByJobId("my_job_id")).thenReturn(Mockito.mock(JobEntity.class));
+
         this.databaseAccessor.removeJob("my_job_id");
+        Mockito.verify(this.jobDao, times(1)).delete(any(JobEntity.class));
+
+        //Test deleting an invalid job. jobDao.delete should not be called again.
         this.databaseAccessor.removeJob("my_invalid_id");
         Mockito.verify(this.jobDao, times(1)).delete(any(JobEntity.class));
     }

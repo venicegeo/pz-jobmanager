@@ -31,7 +31,6 @@ public class ApplicationTests {
      */
     @Before
     public void setup() {
-
         MockitoAnnotations.initMocks(this);
 
         ReflectionTestUtils.setField(application, "threadCountSize", 100);
