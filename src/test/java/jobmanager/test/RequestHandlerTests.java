@@ -15,12 +15,15 @@
  **/
 package jobmanager.test;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import model.job.Job;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
@@ -28,6 +31,7 @@ import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.RequestJobHandler;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
@@ -56,19 +60,29 @@ public class RequestHandlerTests {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(requestJobHandler, "logJobPayloadsToConsole", true);
 	}
 
 	/**
 	 * Test requesting a Job
 	 */
 	@Test
-	public void testRequestJob() throws Exception {
+	public void testRequestJob()  {
 		// Mock
 		PiazzaJobRequest mockRequest = new PiazzaJobRequest();
 		mockRequest.jobType = new RepeatJob("123456");
 		when(uuidFactory.getUUID()).thenReturn("654321");
 
-		// Test
+		//Test with an empty id. One should be assigned.
+		requestJobHandler.process(mockRequest, "");
+		Mockito.verify(this.accessor, Mockito.times(1)).addJob(Mockito.any(Job.class));
+
+		//Test with a random id.
+		requestJobHandler.process(mockRequest, "123456");
+		Mockito.verify(this.accessor, Mockito.times(2)).addJob(Mockito.any(Job.class));
+
+		//Generate a nullPointer exception. It should not propagate up.
 		requestJobHandler.process(mockRequest, null);
 	}
 }

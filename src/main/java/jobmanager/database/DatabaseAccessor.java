@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
 import org.venice.piazza.common.hibernate.dao.job.JobDao;
 import org.venice.piazza.common.hibernate.entity.JobEntity;
 
@@ -73,9 +72,9 @@ public class DatabaseAccessor {
 	 * @param jobId
 	 *            Job Id
 	 * @return The Job with the specified Id
-	 * @throws InterruptedException
+	 * @throws org.springframework.web.client.ResourceAccessException
 	 */
-	public Job getJobById(String jobId) throws ResourceAccessException, InterruptedException {
+	public Job getJobById(String jobId) {
 		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
 		return jobEntity != null ? jobEntity.getJob() : null;
 	}
@@ -115,7 +114,7 @@ public class DatabaseAccessor {
 		}
 
 		// Collect the Jobs
-		List<Job> jobs = new ArrayList<Job>();
+		List<Job> jobs = new ArrayList<>();
 		for (JobEntity jobEntity : results) {
 			jobs.add(jobEntity.getJob());
 		}
@@ -169,13 +168,13 @@ public class DatabaseAccessor {
 	 * @param statusUpdate
 	 *            The Status Update information
 	 */
-	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) throws ResourceAccessException, InterruptedException {
+	public void updateJobStatus(String jobId, StatusUpdate statusUpdate) {
 		JobEntity jobEntity = jobDao.getJobByJobId(jobId);
 		if (jobEntity != null) {
 			Job job = jobEntity.getJob();
 
 			// Only update the information that is not null
-			if (statusUpdate.getStatus().isEmpty() == false) {
+			if (!statusUpdate.getStatus().isEmpty()) {
 				job.setStatus(statusUpdate.getStatus());
 			}
 			if (statusUpdate.getProgress() != null) {

@@ -58,7 +58,7 @@ public class AbortJobHandler {
 		
 		try {
 			jobToCancel = accessor.getJobById(abortJob.getJobId());
-		} catch (ResourceAccessException | InterruptedException e) {
+		} catch (ResourceAccessException e) {
 			String error = String.format("Could not retrieve Abort Job by ID: %s", abortJob.getJobId());
 			LOG.info(error, e);
 			logger.log(error, Severity.INFORMATIONAL);
