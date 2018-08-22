@@ -1,4 +1,5 @@
 #pz-jobmanager
+
 The core purpose of the pz-jobmanager is for managing piazza jobs. For activities that are potentially time consuming such as the invocation of user services (e.g. algorithms), the orchestration of user services and loading of data results, Piazza leverages Apache Kafka for asynchronous messaging support. Requests are sent to the Gateway as Jobs. The Job Manager component obtains this information and creates job messages for the Workflow, Service Controller and Ingest components to obtain and work on. A unique jobId is used to track these jobs and is provided back to the NPE as a response to the job request. NPEs use the jobId to track the status of their job request. Leveraging Apache Kafka, the Workflow, Service Controller and Ingest components send updates about job status. Once the job is complete, data results are loaded onto S3 or PostGreSQL for NPEs to access.
 
 ***
