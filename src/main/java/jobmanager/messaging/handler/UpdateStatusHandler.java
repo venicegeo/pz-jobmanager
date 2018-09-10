@@ -46,7 +46,6 @@ public class UpdateStatusHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateStatusHandler.class);
 	
-	@Async
 	public void process(StatusUpdate statusUpdate) {
 		// Changing the Status in the Job Table
 		String jobId = statusUpdate.getJobId();

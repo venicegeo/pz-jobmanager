@@ -175,7 +175,23 @@ public class DatabaseAccessor {
 
 			// Only update the information that is not null
 			if (!statusUpdate.getStatus().isEmpty()) {
-				job.setStatus(statusUpdate.getStatus());
+				// Only update the status if the status of that job is in a non-finished state. If it is in a finished
+				// state, then this is potentially an out-of-order message and should be disregarded.
+				if (job.getStatus() == null) {
+					job.setStatus(statusUpdate.getStatus());
+				} else {
+					switch (job.getStatus()) {
+					case StatusUpdate.STATUS_CANCELLED:
+					case StatusUpdate.STATUS_ERROR:
+					case StatusUpdate.STATUS_FAIL:
+					case StatusUpdate.STATUS_SUCCESS:
+						// Do not update the status if it is in a finalized state.
+						break;
+					default:
+						job.setStatus(statusUpdate.getStatus());
+						break;
+					}
+				}
 			}
 			if (statusUpdate.getProgress() != null) {
 				job.setProgress(statusUpdate.getProgress());
