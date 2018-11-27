@@ -24,15 +24,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import exception.PiazzaJobException;
-import javafx.print.PrinterJob;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.ResourceAccessException;
 
+import exception.PiazzaJobException;
 import jobmanager.database.DatabaseAccessor;
 import jobmanager.messaging.handler.AbortJobHandler;
 import jobmanager.messaging.handler.RepeatJobHandler;
@@ -46,10 +46,6 @@ import model.job.type.IngestJob;
 import model.job.type.RepeatJob;
 import model.request.PiazzaJobRequest;
 import model.status.StatusUpdate;
-import org.mockito.internal.verification.Times;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.ResourceAccessException;
-import sun.reflect.Reflection;
 import util.PiazzaLogger;
 import util.UUIDFactory;
 
